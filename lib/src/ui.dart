@@ -5,12 +5,21 @@ import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Fram
 import 'package:pixelcycle2/src/player.dart' show Player;
 
 void onLoad(Player player) {
+  Movie movie = player.movie;
+  
   for (CanvasElement elt in queryAll('canvas[class="frameview"]')) {
-    Size size = new Size(elt.attributes["data-size"]);
-    var f = new FrameView(elt, size);
-    f.setFrame(player.movie.frames[player.frame]);
-    player.onFrameChange.forEach((frameIndex) {
-      f.setFrame(player.movie.frames[frameIndex]);      
+    var size = new Size(elt.attributes["data-size"]);
+    var f = new FrameView(elt, size, movie);
+    player.onTimeChange.forEach((num time) {
+      f.render(player.positionAt(time));      
+    });
+  }
+  
+  for (CanvasElement elt in queryAll('canvas[class="stripview"]')) {
+    var size = new Size(elt.attributes["data-size"]);
+    var strip = new StripView(elt, size, movie);    
+    player.onTimeChange.forEach((num time) {
+      strip.render(player.positionAt(time));
     });
   }
 }
@@ -18,32 +27,45 @@ void onLoad(Player player) {
 class FrameView {
   final CanvasElement elt;
   final Size size;
+  final Movie movie;
 
-  Frame frame;
-  Rect _damage = null;
-
-  FrameView(this.elt, this.size) {
+  FrameView(this.elt, this.size, this.movie) {
     elt.width = WIDTH * size.pixelsize;
     elt.height = HEIGHT * size.pixelsize;
   }
- 
-  void setFrame(Frame newFrame) {
-    if (this.frame == newFrame) {
-      return;
-    }
-    this.frame = newFrame;
-    renderAsync(ALL);
+  
+  void render(num moviePosition) { 
+    var frame = movie.frames[moviePosition ~/ 1];      
+    frame.render(elt.context2D, size, ALL);
+  }
+}
+
+const SPACER = 10;
+
+class StripView {
+  final CanvasElement elt;
+  final Size size;
+  final Movie movie;
+  final int height = HEIGHT + SPACER;
+  
+  StripView(this.elt, this.size, this.movie) {
+    var c = elt.context2D;
+    c.fillStyle = "#000000";
+    c.fillRect(0, 0, 2*SPACER + WIDTH, elt.height);    
   }
   
-  void renderAsync(Rect clip) {
-    if (_damage != null) {
-      _damage = _damage.union(clip);
-      return;
+  void render(num moviePosition) {
+    var c = elt.context2D;
+    int frame = moviePosition ~/ 1;
+    int frameY = ((frame - moviePosition) * height) ~/ 1;
+    while (frameY < elt.height) {
+      
+      movie.frames[frame].renderAt(c, size, SPACER, frameY);
+      c.fillStyle = "#000000";
+      c.fillRect(0, frameY + HEIGHT, WIDTH + SPACER * 2, SPACER);
+      
+      frame = (frame + 1) % movie.frames.length;
+      frameY += height;
     }
-    _damage = clip;
-    window.requestAnimationFrame((t) {
-      frame.render(elt.context2D, size, clip);
-      _damage = null;
-    });
   }
 }

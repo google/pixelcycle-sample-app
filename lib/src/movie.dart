@@ -27,7 +27,7 @@ const LARGE = const Size._internal("large", 1, 14);
 
 class Movie {
   final Palette palette;
-  final frames = new List<Frame>();
+  final List<Frame> frames = new List<Frame>();
   
   Movie(this.palette);
   
@@ -80,5 +80,9 @@ class Frame {
 //    c.moveTo(0, 0);
 //    c.lineTo(WIDTH * s.pixelsize, HEIGHT * s.pixelsize);
 //    c.stroke();
+  }
+  
+  void renderAt(CanvasRenderingContext2D c, Size size, int x, int y) {
+    c.drawImage(bufs[size.index], x, y);
   }
 }
