@@ -8,11 +8,13 @@ class Player {
   final Movie movie;
   Stream<num> onTimeChange;
   EventSink<num> _onTimeChangeSink;
-  num velocity = 0;
+  
   num _position = 0;
+  num velocity = 0;
   num _time = 0;
+  
   bool _playing = false;
-  int animateRequestId = 0;
+  int _animateRequestId = 0;
   
   Player(this.movie) {
     var controller = new StreamController<num>();
@@ -20,8 +22,17 @@ class Player {
     _onTimeChangeSink = controller.sink;
   }
 
-  num get time => _time;
-  
+  void drag(num deltaPos, num deltaT) {
+    if (deltaT == 0) {
+      return;
+    }
+    _position = (_position + deltaPos) % movie.frames.length;
+    velocity = deltaPos / deltaT;
+    _time = window.performance.now() / 1000.0;
+    _playing = false;
+    renderAsync();
+  }
+    
   set time (num newValue) {
     if (newValue == _time) {
       return;
@@ -33,7 +44,12 @@ class Player {
   
   num positionAt(num time) => (_position + (time - _time) * velocity) % movie.frames.length;
   
+  num get position => positionAt(_time);
+
   set playing (bool newValue) {
+    if (velocity == 0) {
+      newValue = false;
+    }
     if (_playing == newValue) {
       return;
     }
@@ -41,21 +57,27 @@ class Player {
       _time = window.performance.now() / 1000;
     }
     _playing = newValue;
-    if (_playing && animateRequestId == 0) {
-      animateRequestId = window.requestAnimationFrame(_animate);
+    if (_playing) {
+      renderAsync();
     }
-    if (!_playing && animateRequestId != 0) {
-      print("cancelling");
-      window.cancelAnimationFrame(animateRequestId);
+    if (!_playing && _animateRequestId != 0) {
+      window.cancelAnimationFrame(_animateRequestId);
+      _animateRequestId = 0;
+    }
+  }
+  
+  void renderAsync() {
+    if (_animateRequestId == 0) {
+      _animateRequestId = window.requestAnimationFrame(_animate);      
     }
   }
   
   _animate(num tMillis) {
     time = tMillis / 1000;
     if (_playing) {
-      animateRequestId = window.requestAnimationFrame(_animate);
+      _animateRequestId = window.requestAnimationFrame(_animate);
     } else {
-      animateRequestId = 0;
+      _animateRequestId = 0;
     }
   }
 }
