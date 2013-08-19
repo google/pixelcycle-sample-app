@@ -5,7 +5,7 @@ import 'package:pixelcycle2/src/ui.dart' as ui;
 
 void main() {
   var palette = new Palette.standard();
-  var movie = new Movie.dazzle(palette);
+  var movie = new Movie.wiper(palette);
   var player = new Player(movie);
 
   ui.onLoad(player);

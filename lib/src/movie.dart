@@ -32,7 +32,7 @@ class Movie {
   Movie(this.palette);
   
   factory Movie.dazzle(Palette palette) {
-    Movie result = new Movie(palette);
+    Movie m = new Movie(palette);
     for (int findex = 0; findex < palette.colors.length; findex++) {
       var f = new Frame(palette);
       for (int y = 0; y < HEIGHT; y++) {
@@ -40,9 +40,24 @@ class Movie {
           f.set(x, y, (x + y + findex) % palette.colors.length);
         }
       }
-      result.frames.add(f);
+      m.frames.add(f);
     }
-    return result;
+    return m;
+  }
+  
+  factory Movie.wiper(Palette palette) {
+    Movie m = new Movie(palette);
+    var frameCount = 16;
+    for (int findex = 0; findex < frameCount; findex++) {
+      var f = new Frame(palette);
+      for (int y = 0; y < HEIGHT; y++) {
+        for (int x = findex; x < WIDTH; x += frameCount) {
+          f.set(x, y, 5);          
+        }
+      }
+      m.frames.add(f);
+    }
+    return m;    
   }
 }
 

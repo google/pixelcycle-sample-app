@@ -1,7 +1,9 @@
 library ui;
 
-import 'dart:html';
 import 'dart:async' show StreamSubscription;
+import 'dart:html';
+import 'dart:math';
+
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame, Size;
 import 'package:pixelcycle2/src/player.dart' show Player;
 
@@ -56,11 +58,8 @@ class StripView {
   StripView(this.elt, this.size, this.player) {
     elt.width = WIDTH + SPACER * 2;
     elt.height = HEIGHT * LARGE.pixelsize;
+    elt.style.backgroundColor = "#000000";
     
-    var c = elt.context2D;
-    c.fillStyle = "#000000";
-    c.fillRect(0, 0, 2*SPACER + WIDTH, elt.height);
-
     elt.onMouseDown.listen((e) {
       e.preventDefault();
       player.playing = false;
@@ -97,17 +96,28 @@ class StripView {
   
   void render(num moviePosition) {
     var movie = player.movie;
+    elt.width = elt.width;
     var c = elt.context2D;
-    int frame = moviePosition ~/ 1;
-    int frameY = ((frame - moviePosition) * height) ~/ 1;
+
+    int currentFrame = moviePosition ~/ 1;
+    int currentFrameY = elt.height ~/ 2;
+    
+    num startPos = (moviePosition - currentFrameY / height) % movie.frames.length;
+    int frame = startPos ~/ 1;
+    int frameY = ((frame - startPos) * height) ~/ 1 + SPACER ~/ 2;
     while (frameY < elt.height) {
-      
+      var peakDist = (frameY - currentFrameY).abs() / elt.height;
+      c.globalAlpha = 0.6 - peakDist / 2;
       movie.frames[frame].renderAt(c, size, SPACER, frameY);
-      c.fillStyle = "#000000";
-      c.fillRect(0, frameY + HEIGHT, WIDTH + SPACER * 2, SPACER);
       
       frame = (frame + 1) % movie.frames.length;
       frameY += height;
     }
+
+    c.strokeStyle = "#FFF";
+    c.globalAlpha = 1.0;
+    c.moveTo(0, currentFrameY);
+    c.lineTo(elt.width, currentFrameY);
+    c.stroke();
   }
 }

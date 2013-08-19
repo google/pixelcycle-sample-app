@@ -12,16 +12,7 @@ h1, p {
   color: #333;
 }
 
-#sample_container_id {
-  width: 100%;
-  height: 400px;
-  position: relative;
-  border: 1px solid #ccc;
-  background-color: #fff;
-}
-
-#sample_text_id {
-  font-size: 24pt;
-  text-align: center;
-  margin-top: 140px;
+canvas.stripview {
+  float: left;
+  margin-right: 10px;
 }
