@@ -11,9 +11,9 @@ void onLoad(Player player) {
 
   for (CanvasElement elt in queryAll('canvas[class="frameview"]')) {
     var size = new Size(elt.attributes["data-size"]);
-    var f = new FrameView(elt, size, movie);
+    var f = new FrameView(elt, size);
     player.onTimeChange.listen((num time) {
-      f.render(player.positionAt(time));
+      f.frame = player.currentFrame;
     });
   }
 
@@ -29,16 +29,20 @@ void onLoad(Player player) {
 class FrameView {
   final CanvasElement elt;
   final Size size;
-  final Movie movie;
+  Frame _frame;
 
-  FrameView(this.elt, this.size, this.movie) {
+  FrameView(this.elt, this.size) {
     elt.width = WIDTH * size.pixelsize;
     elt.height = HEIGHT * size.pixelsize;
   }
 
-  void render(num moviePosition) {
-    var frame = movie.frames[moviePosition ~/ 1];
-    frame.render(elt.context2D, size, ALL);
+  /// Sets the current frame. Renders the frame if it changed.
+  set frame(Frame newFrame) {
+    if (_frame == newFrame) {
+      return;
+    }
+    _frame = newFrame;
+    _frame.render(elt.context2D, size, ALL);
   }
 }
 
