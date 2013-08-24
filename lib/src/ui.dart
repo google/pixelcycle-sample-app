@@ -73,7 +73,6 @@ class StripView {
     query("body").onMouseUp.listen((e) => _finishDrag());
 
     elt.onTouchStart.listen((TouchEvent e) {
-      print("onTouchStart");
       e.preventDefault();
       if (_drag == null) {
         var moveSub = elt.onTouchMove.listen((e) {
@@ -199,9 +198,9 @@ class MovieView {
       if (_frame == null) {
         return;
       }
-      _paint(e);
+      _mousePaint(e);
       colorIndex = (colorIndex + 1) % 50;
-      _moveSub = elt.onMouseMove.listen(_paint);
+      _moveSub = elt.onMouseMove.listen(_mousePaint);
     });
 
     query("body").onMouseUp.listen((MouseEvent e) {
@@ -215,12 +214,26 @@ class MovieView {
         _moveSub.cancel();
       }
     });
+
+    elt.onTouchStart.listen(_fingerPaint);
+    elt.onTouchMove.listen(_fingerPaint);
   }
 
-  void _paint(MouseEvent e) {
+  void _mousePaint(MouseEvent e) {
     int x = (e.offset.x / size.pixelsize).toInt();
     int y = (e.offset.y / size.pixelsize).toInt();
     _frame.set(x, y, colorIndex);
+  }
+
+  void _fingerPaint(TouchEvent e) {
+    e.preventDefault();
+    for (Touch t in e.targetTouches) {
+      int canvasX = t.page.x - elt.offsetLeft;
+      int canvasY = t.page.y - elt.offsetTop;
+      int x = (canvasX / size.pixelsize).toInt();
+      int y = (canvasY / size.pixelsize).toInt();
+      _frame.set(x, y, colorIndex);
+    }
   }
 
   void renderAsync(Rect clip) {
