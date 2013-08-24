@@ -1,13 +1,8 @@
 library player;
 
 import 'dart:html';
-import 'dart:async' show Stream, EventSink, StreamController, Timer;
+import 'dart:async' show Stream, StreamController, StreamSubscription;
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
-
-// The time in seconds since the window.performance.now() Epoch.
-num now() {
-  return window.performance.now() / 1000;
-}
 
 /// The Player controls the position and speed at which the movie is playing.
 class Player {
@@ -97,4 +92,45 @@ class Player {
   Frame frameAt(num time) => movie.frames[(positionAt(time) ~/ 1)];
 
   Frame get currentFrame => frameAt(now());
+}
+
+/// The state of an in-progress drag that will change how fast the movie plays.
+/// The position is measured in frames and time in seconds.
+class PlayDrag {
+  final Player player;
+  final StreamSubscription moveSub;
+  final touchId;
+  num lastTime;
+  num lastPos;
+
+  PlayDrag.start(this.player, this.moveSub, num pos, {this.touchId}) {
+    player.playing = false;
+    player.speed = 0;
+    lastTime = now();
+    lastPos = pos;
+  }
+
+  void update(num pos) {
+    num now = window.performance.now() / 1000.0;
+    num deltaPos = pos - lastPos;
+    num deltaT = now - lastTime;
+    // negate the position because dragging forward causes the movie to play backwards.
+    player.drag(-deltaPos, deltaT);
+    lastPos = pos;
+    lastTime = now;
+  }
+
+  void finish() {
+    num time = now();
+    if (time - lastTime > 0.2) {
+      player.speed = 0;
+    }
+    player.playing = true;
+    moveSub.cancel();
+  }
+}
+
+// The time in seconds since the window.performance.now() Epoch.
+num now() {
+  return window.performance.now() / 1000;
 }
