@@ -4,7 +4,7 @@ import 'dart:html';
 import 'dart:async' show Stream, StreamController, StreamSubscription;
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
 
-/// The Player controls the position and speed at which the movie is playing.
+/// The Player represents the position and speed at which the movie is playing.
 class Player {
   final Movie movie;
   final StreamController<Player> _onChange = new StreamController<Player>.broadcast();

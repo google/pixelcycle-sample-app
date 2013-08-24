@@ -10,6 +10,6 @@ void main() {
 
   ui.onLoad(player);
 
-  player.speed = 5;
+  player.speed = 10;
   player.playing = true;
 }

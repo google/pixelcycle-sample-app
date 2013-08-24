@@ -18,6 +18,9 @@ class Size {
 
   factory Size(String name) => all.firstWhere((s) => s.name == name);
 
+  int get width => WIDTH * pixelsize;
+  int get height => HEIGHT * pixelsize;
+
   Rect gridToViewCoords(Rect r) {
     return new Rect(r.left * pixelsize, r.top * pixelsize, r.width * pixelsize, r.height * pixelsize);
   }
