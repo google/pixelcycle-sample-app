@@ -53,7 +53,7 @@ class StripView {
       pixelsPerFrame = size.width + SPACER;
       center = elt.width ~/ 2;
       mouseFramePos = (MouseEvent e) => e.client.x / pixelsPerFrame;
-      touchFramePos = (Touch t) => t.page.y / pixelsPerFrame;
+      touchFramePos = (Touch t) => t.page.x / pixelsPerFrame;
     }
 
     player.onChange.listen((e) {
