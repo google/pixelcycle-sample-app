@@ -7,75 +7,137 @@ import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movi
 import 'package:pixelcycle2/src/player.dart' show Player;
 
 void onLoad(Player player) {
-  Movie movie = player.movie;
 
-  for (CanvasElement elt in queryAll('canvas[class="frameview"]')) {
+  for (CanvasElement elt in queryAll('canvas[class="playerview"]')) {
     var size = new Size(elt.attributes["data-size"]);
-    var f = new FrameView(elt, size);
-    player.onTimeChange.listen((num time) {
-      f.frame = player.currentFrame;
-    });
+    new PlayerView(player, elt, size);
   }
 
   for (CanvasElement elt in queryAll('canvas[class="stripview"]')) {
     var size = new Size(elt.attributes["data-size"]);
-    var strip = new StripView(elt, size, player);
-    player.onTimeChange.listen((num time) {
-      strip.render(player.positionAt(time));
-    });
+    new StripView(player, elt, size);
   }
 }
 
-class FrameView {
+class PlayerView {
+  final Player player;
   final CanvasElement elt;
   final Size size;
   Frame _frame;
+  StreamSubscription _frameSub;
+  Rect _damage;
+  int _animSub;
+  int colorIndex = 1;
 
-  FrameView(this.elt, this.size) {
+  StreamSubscription _moveSub;
+
+  PlayerView(this.player, this.elt, this.size) {
     elt.width = WIDTH * size.pixelsize;
     elt.height = HEIGHT * size.pixelsize;
+
+    player.onChange.listen((e) {
+      renderAsync(ALL);
+    });
+
+    elt.onMouseDown.listen((e) {
+      e.preventDefault();
+      if (_frame == null) {
+        return;
+      }
+      _paint(e);
+      colorIndex = (colorIndex + 1) % 50;
+      _moveSub = elt.onMouseMove.listen(_paint);
+    });
+
+    query("body").onMouseUp.listen((MouseEvent e) {
+      if (_moveSub != null) {
+        _moveSub.cancel();
+      }
+    });
+
+    elt.onMouseOut.listen((MouseEvent e) {
+      if (_moveSub != null) {
+        _moveSub.cancel();
+      }
+    });
   }
 
-  /// Sets the current frame. Renders the frame if it changed.
+  void _paint(MouseEvent e) {
+    int x = (e.offset.x / size.pixelsize).toInt();
+    int y = (e.offset.y / size.pixelsize).toInt();
+    _frame.set(x, y, colorIndex);
+  }
+
+  void renderAsync(Rect clip) {
+    if (_damage == null) {
+      _damage = clip;
+    } else if (clip != null) {
+      _damage = _damage.union(clip);
+    }
+    if (_animSub == null) {
+      _animSub = window.requestAnimationFrame(_render);
+    }
+  }
+
+  void _render(t) {
+    _animSub = null;
+    frame = player.currentFrame;
+    if (_damage != null) {
+      _frame.render(elt.context2D, size, _damage);
+      _damage = null;
+    }
+    if (player.playing) {
+      renderAsync(null);
+    }
+  }
+
   set frame(Frame newFrame) {
     if (_frame == newFrame) {
       return;
     }
     _frame = newFrame;
+    if (_frameSub != null) {
+      _frameSub.cancel();
+    }
+    _frameSub = _frame.onChange.listen(renderAsync);
     _frame.render(elt.context2D, size, ALL);
+    _damage = null;
   }
 }
 
 const SPACER = 10;
 
 class StripView {
+  final Player player;
   final CanvasElement elt;
   final Size size;
-  final Player player;
   final int height = HEIGHT + SPACER;
+  int _animSub;
 
   StreamSubscription moveSub;
-  num lastTime;
-  num lastY;
 
   var touchId = null;
   StreamSubscription touchMoveSub;
-  num lastTouchTime;
-  num lastTouchY;
 
-  StripView(this.elt, this.size, this.player) {
+  num lastTime;
+  num lastY;
+
+  StripView(this.player, this.elt, this.size) {
     elt.width = WIDTH + SPACER * 2;
     elt.height = HEIGHT * LARGE.pixelsize;
     elt.style.backgroundColor = "#000000";
 
+    player.onChange.listen((e) {
+      renderAsync();
+    });
+
     elt.onMouseDown.listen((e) {
       e.preventDefault();
       player.playing = false;
-      player.velocity = 0;
+      player.speed = 0;
       if (moveSub == null) {
-        lastTime = window.performance.now() / 1000.0;
-        lastY = e.client.y;
-        moveSub = elt.onMouseMove.listen(drag);
+        startDrag(e.client.y);
+        moveSub = elt.onMouseMove.listen((e) => onDrag(e.client.y));
       }
     });
 
@@ -91,49 +153,47 @@ class StripView {
       }
       Touch t = e.changedTouches[0];
       player.playing = false;
-      player.velocity = 0;
+      player.speed = 0;
       if (touchMoveSub == null) {
         touchId = t.identifier;
-        lastTouchTime = window.performance.now() / 1000.0;
-        lastTouchY = t.page.y;
-        print("lastTouchY: ${lastTouchY}");
-        touchMoveSub = elt.onTouchMove.listen(touchDrag);
+        startDrag(t.page.y);
+        touchMoveSub = elt.onTouchMove.listen((e) {
+          for (Touch t in e.changedTouches) {
+            if (t.identifier == touchId) {
+              onDrag(t.page.y);
+            }
+          }
+        });
       }
     });
 
     elt.onTouchEnd.listen((TouchEvent e) {
       if (e.touches.isEmpty) {
-        print("onTouchEnd empty");
         stopDragging();
       }
     });
   }
 
-  void drag(MouseEvent e) {
+  void startDrag(num y) {
+    lastTime = window.performance.now() / 1000.0;
+    lastY = y;
+  }
+
+  void onDrag(num y) {
     num now = window.performance.now() / 1000.0;
-    num deltaY = e.client.y - lastY;
+    num deltaY = y - lastY;
     num deltaPos = -deltaY / height;
     num deltaT = now - lastTime;
     player.drag(deltaPos, deltaT);
+    lastY = y;
     lastTime = now;
-    lastY = e.client.y;
-  }
-
-  void touchDrag(TouchEvent e) {
-    for (Touch t in e.changedTouches) {
-      if (t.identifier == touchId) {
-        num now = window.performance.now() / 1000.0;
-        num deltaY = t.page.y - lastTouchY;
-        num deltaPos = -deltaY / height;
-        num deltaT = now - lastTouchTime;
-        player.drag(deltaPos, deltaT);
-        lastTouchTime = now;
-        lastTouchY = t.page.y;
-      }
-    }
   }
 
   void stopDragging() {
+    num now = window.performance.now() / 1000.0;
+    if (lastTime != null && now - lastTime > 0.2) {
+      player.speed = 0;
+    }
     player.playing = true;
     if (moveSub != null) {
       moveSub.cancel();
@@ -144,9 +204,19 @@ class StripView {
       touchMoveSub = null;
     }
     touchId = null;
+    lastY = null;
+    lastTime = null;
   }
 
-  void render(num moviePosition) {
+  void renderAsync() {
+    if (_animSub == null) {
+      _animSub = window.requestAnimationFrame(_render);
+    }
+  }
+
+  void _render(num millis) {
+    _animSub = null;
+    num moviePosition = player.positionAt(millis/1000);
     var movie = player.movie;
     elt.width = elt.width;
     var c = elt.context2D;
@@ -171,6 +241,10 @@ class StripView {
     c.moveTo(0, currentFrameY);
     c.lineTo(elt.width, currentFrameY);
     c.stroke();
+
+    if (player.playing) {
+      renderAsync();
+    }
   }
 }
 

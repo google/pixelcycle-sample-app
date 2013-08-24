@@ -4,98 +4,97 @@ import 'dart:html';
 import 'dart:async' show Stream, EventSink, StreamController, Timer;
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
 
-/// The Player is in charge of playing the movie. It keeps the position and speed
-/// that the movie plays and sends time change events to render the views while the
-/// movie is playing.
+// The time in seconds since the window.performance.now() Epoch.
+num now() {
+  return window.performance.now() / 1000;
+}
+
+/// The Player controls the position and speed at which the movie is playing.
 class Player {
   final Movie movie;
-  Stream<num> onTimeChange;
-  EventSink<num> _onTimeChangeSink;
+  final StreamController<Player> _onChange = new StreamController<Player>.broadcast();
 
-  num _position = 0;
-  num velocity = 0;
-  num _time = 0;
+  // The time in seconds since the window.performance.now() epoch when the movie started playing, or null if not playing.
+  num _startTime = null;
 
-  bool _playing = false;
-  int _animateRequestId = 0;
+  // The position in the movie where it started playing, or will play.
+  // This is a number between 0 (the first frame) and the length of the movie in frames.
+  num _startPosition = 0;
 
-  Player(this.movie) {
-    var controller = new StreamController<num>();
-    onTimeChange = controller.stream.asBroadcastStream();
-    _onTimeChangeSink = controller.sink;
+  // The speed at which the movie is playing, or will play. May be negative to play backwards.
+  num _speed = 0;
+
+  Player(this.movie);
+
+  Stream<Player> get onChange => _onChange.stream;
+
+  bool get playing => _startTime != null;
+
+  /// Set to true to play the movie the current velocity, or false to pause it.
+  /// If the speed is 0 then the movie will remain stopped.
+  set playing (bool newValue) {
+    if (playing == newValue) {
+      return;
+    }
+    if (newValue && _speed != 0) {
+      _start();
+    } else {
+      _stop();
+    }
+    if (_onChange.hasListener) {
+      _onChange.add(this);
+    }
   }
 
-  /// Sets the movie's position and velocity based on a drag.
-  /// This also pauses the movie and redraws it.
+  void _start() {
+    _startTime = now();
+  }
+
+  void _stop() {
+    _startPosition = positionAt(now());
+    _startTime = null;
+  }
+
+  set speed(num newValue) {
+    num t = now();
+    _startPosition = positionAt(t);
+    _speed = newValue;
+    _startTime = playing ? t : null;
+    if (_speed == 0) {
+      playing = false;
+    }
+  }
+
+  /// Modifies movie's starting position and speed based on a drag. Also pauses the player.
+  /// The position will have deltaPos added to it and the speed will be set to deltaPos / deltaT.
   void drag(num deltaPos, num deltaT) {
     if (deltaT == 0) {
       return;
     }
-    _position = (_position + deltaPos) % movie.frames.length;
-    velocity = deltaPos / deltaT;
-    _time = window.performance.now() / 1000.0;
-    _playing = false;
-    renderAsync();
-  }
-
-  /// Sets the current simulation time in seconds since the start of window.performance.now()'s epoch.
-  /// This updates the position in the movie (based on the current velocity) and renders the views
-  /// at the new time. Normally the time is set from within requestAnimationFrame.
-  set time (num newValue) {
-    if (newValue == _time) {
-      return;
+    if (playing) {
+      _stop();
     }
-    _position = positionAt(newValue);
-    _time = newValue;
-    _onTimeChangeSink.add(newValue);
-  }
-
-  /// Returns what the movie's position will be at the given time, assuming it
-  /// continues to play at the current velocity.
-  num positionAt(num time) => (_position + (time - _time) * velocity) % movie.frames.length;
-
-  /// Returns the current position within the movie.
-  /// This is a floating point number from 0 (inclusive) to frames.length (exclusive).
-  num get position => positionAt(_time);
-
-  /// Returns the currently displayed movie frame.
-  Frame get currentFrame => movie.frames[(position ~/ 1)];
-
-  /// Set to true to play the movie the current velocity, or false to pause it.
-  /// If velocity is zero, setting to play to true has no effect.
-  set playing (bool newValue) {
-    if (velocity == 0) {
-      newValue = false;
-    }
-    if (_playing == newValue) {
-      return;
-    }
-    if (!_playing) {
-      _time = window.performance.now() / 1000;
-    }
-    _playing = newValue;
-    if (_playing) {
-      renderAsync();
-    }
-    if (!_playing && _animateRequestId != 0) {
-      window.cancelAnimationFrame(_animateRequestId);
-      _animateRequestId = 0;
+    _startPosition = (_startPosition + deltaPos) % movie.frames.length;
+    _speed = deltaPos / deltaT;
+    if (_onChange.hasListener) {
+      _onChange.add(this);
     }
   }
 
-  /// Requests the views to be redrawn.
-  void renderAsync() {
-    if (_animateRequestId == 0) {
-      _animateRequestId = window.requestAnimationFrame(_animate);
+  /// Returns the movie's position at the given time, assuming it
+  /// continues to play at the current speed.
+  /// The time is in seconds since the window.performance.now() epoch.
+  num positionAt(num time) {
+    if (!playing) {
+      return _startPosition;
     }
+    return (_startPosition + (time - _startTime) * _speed) % movie.frames.length;
   }
 
-  _animate(num tMillis) {
-    time = tMillis / 1000;
-    if (_playing) {
-      _animateRequestId = window.requestAnimationFrame(_animate);
-    } else {
-      _animateRequestId = 0;
-    }
-  }
+  num get position => positionAt(now());
+
+  /// Returns the frame to display at the given time.
+  Frame frameAt(num time) => movie.frames[(positionAt(time) ~/ 1)];
+
+  Frame get currentFrame => frameAt(now());
 }

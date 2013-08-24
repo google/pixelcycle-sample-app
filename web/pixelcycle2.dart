@@ -5,11 +5,11 @@ import 'package:pixelcycle2/src/ui.dart' as ui;
 
 void main() {
   var palette = new Palette.standard();
-  var movie = new Movie.wiper(palette);
+  var movie = new Movie.blank(palette, 8);
   var player = new Player(movie);
 
   ui.onLoad(player);
 
-  player.velocity = 5;
+  player.speed = 5;
   player.playing = true;
 }
