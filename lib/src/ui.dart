@@ -15,7 +15,7 @@ void onLoad(Player player, Brush brush) {
   }
 
   for (CanvasElement elt in queryAll('.movie')) {
-    new MovieView(player, brush, elt, LARGE);
+    new MovieView(player, brush, elt);
   }
 
   for (TableElement elt in queryAll('.palette')) {
@@ -182,7 +182,7 @@ class MovieView {
   final Player player;
   final Brush brush;
   final CanvasElement elt;
-  final Size size;
+  Size size;
   Frame _frame; // The most recently rendered frame (being watched).
   StreamSubscription _frameSub;
   Rect _damage; // Area of the watched frame that needs re-rendering.
@@ -190,9 +190,8 @@ class MovieView {
 
   StreamSubscription _moveSub;
 
-  MovieView(this.player, this.brush, this.elt, this.size) {
-    elt.width = WIDTH * size.pixelsize;
-    elt.height = HEIGHT * size.pixelsize;
+  MovieView(this.player, this.brush, this.elt) {
+    _resize();
 
     player.onChange.listen((e) {
       renderAsync(ALL);
@@ -254,6 +253,7 @@ class MovieView {
   /// Render the player's currently watched frame if needed.
   void _render(t) {
     _animSub = null;
+    _resize();
     _watch(player.currentFrame);
     if (_damage != null) {
       _frame.render(elt.context2D, _damage, size.pixelsize);
@@ -262,6 +262,18 @@ class MovieView {
     if (player.playing) {
       renderAsync(null);
     }
+  }
+
+  // Sets the canvas size to match the element's width.
+  _resize() {
+    num pixelsize = elt.clientWidth / WIDTH;
+    if (size != null && pixelsize == size.pixelsize) {
+      return;
+    }
+    size = new Size(elt.clientWidth / WIDTH);
+    elt.width = size.width.toInt();
+    elt.height = size.height.toInt();
+    _damage = ALL;
   }
 
   /// Change the currently watched frame, updating the frame subscription if needed.
@@ -338,18 +350,11 @@ class PaletteView {
 }
 
 class Size {
-  static final List<Size> all = [SMALL, LARGE];
-
-  final String name;
-  final int index;
-  final int pixelsize;
-  const Size._internal(this.name, this.index, this.pixelsize);
-
-  factory Size(String name) => all.firstWhere((s) => s.name == name);
-
-  int get width => WIDTH * pixelsize;
-  int get height => HEIGHT * pixelsize;
+  final num pixelsize;
+  const Size(this.pixelsize);
+  num get width => WIDTH * pixelsize;
+  num get height => HEIGHT * pixelsize;
 }
 
-const SMALL = const Size._internal("small", 0, 2);
-const LARGE = const Size._internal("large", 1, 14);
+const SMALL = const Size(2);
+const LARGE = const Size(14);
