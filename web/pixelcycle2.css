@@ -12,11 +12,6 @@ body {
   display: none;
 }
 
-.movie {
-  margin-top: 5mm;
-  width: 100%;
-}
-
 .palette {
   border-collapse: collapse;
   margin-top: 5mm;
@@ -38,8 +33,17 @@ body {
 
 .portrait canvas {
   display: block;
+  width: 100%;
 }
 
+.portrait .movie {
+  margin-top: 5mm;
+}
+
+.landscape canvas {
+  display: block;
+  height: 400px;
+}
 
 @media (orientation: landscape) {
   .portrait {
@@ -47,9 +51,5 @@ body {
   }
   .landscape {
     display: block;
-  }
-  .movie {
-    margin-top: 0;
-    width: 80%;
   }
 }

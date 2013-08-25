@@ -36,7 +36,6 @@ class StripView {
   final Size size;
   final bool vertical;
   int pixelsPerFrame;
-  int center;
   Frame _frame;
   StreamSubscription _frameSub;
   int _animSub;
@@ -48,16 +47,14 @@ class StripView {
     var touchFramePos;
     if (vertical) {
       elt.width = size.width + SPACER * 2;
-      elt.height = LARGE.height;
+      elt.height = elt.clientHeight;
       pixelsPerFrame = size.height + SPACER;
-      center = elt.height ~/ 2;
       mouseFramePos = (MouseEvent e) => e.client.y / pixelsPerFrame;
       touchFramePos = (Touch t) => t.page.y / pixelsPerFrame;
     } else {
-      elt.width = LARGE.width;
+      elt.width = elt.clientWidth < 1000 ? elt.clientWidth : 1000;
       elt.height = size.height + SPACER * 2;
       pixelsPerFrame = size.width + SPACER;
-      center = elt.width ~/ 2;
       mouseFramePos = (MouseEvent e) => e.client.x / pixelsPerFrame;
       touchFramePos = (Touch t) => t.page.x / pixelsPerFrame;
     }
@@ -98,6 +95,18 @@ class StripView {
         _finishDrag();
       }
     });
+
+    window.onResize.listen((e) {
+      renderAsync(); // visibility may have changed
+    });
+  }
+
+  int get center {
+    if (vertical) {
+      return elt.height ~/ 2;
+    } else {
+      return elt.width ~/ 2;
+    }
   }
 
   void _finishDrag() {
@@ -108,7 +117,7 @@ class StripView {
   }
 
   void renderAsync() {
-    if (_animSub == null && elt.style.display != "none") {
+    if (_animSub == null && elt.clientWidth > 0) {
       _animSub = window.requestAnimationFrame(_render);
     }
   }
@@ -120,7 +129,13 @@ class StripView {
     int currentFrame = moviePosition ~/ 1;
     var movie = player.movie;
 
-    elt.width = elt.width; // clear the canvas
+    if (vertical && elt.clientHeight >= 200 && elt.clientHeight <= 2000) {
+      elt.height = elt.clientHeight;
+    } else if (!vertical && elt.clientWidth >= 200 && elt.clientWidth <= 2000) {
+      elt.width = elt.clientWidth;
+    } else {
+      elt.width = elt.width; // Just clear
+    }
     var c = elt.context2D;
 
     // movie position corresponding to the first displayed frame
@@ -191,7 +206,7 @@ class MovieView {
   StreamSubscription _moveSub;
 
   MovieView(this.player, this.brush, this.elt) {
-    _resize();
+    _setSize(LARGE);
 
     player.onChange.listen((e) {
       renderAsync(ALL);
@@ -220,6 +235,10 @@ class MovieView {
 
     elt.onTouchStart.listen(_fingerPaint);
     elt.onTouchMove.listen(_fingerPaint);
+
+    window.onResize.listen((e) {
+      renderAsync(ALL); // visibility may have changed
+    });
   }
 
   void _mousePaint(MouseEvent e) {
@@ -231,8 +250,8 @@ class MovieView {
   void _fingerPaint(TouchEvent e) {
     e.preventDefault();
     for (Touch t in e.targetTouches) {
-      int canvasX = t.page.x - elt.offsetLeft;
-      int canvasY = t.page.y - elt.offsetTop;
+      int canvasX = t.page.x - elt.documentOffset.x;
+      int canvasY = t.page.y - elt.documentOffset.y;
       int x = (canvasX / size.pixelsize).toInt();
       int y = (canvasY / size.pixelsize).toInt();
       _frame.set(x, y, brush.selection);
@@ -264,13 +283,20 @@ class MovieView {
     }
   }
 
-  // Sets the canvas size to match the element's width.
+  /// Sets the canvas size to match the element's width.
   _resize() {
+    if (elt.clientWidth < 200 || elt.clientWidth > 2000) {
+      return; // probably not displayed
+    }
     num pixelsize = elt.clientWidth / WIDTH;
     if (size != null && pixelsize == size.pixelsize) {
       return;
     }
-    size = new Size(elt.clientWidth / WIDTH);
+    _setSize(new Size(elt.clientWidth / WIDTH));
+  }
+
+  _setSize(Size newVal) {
+    size = newVal;
     elt.width = size.width.toInt();
     elt.height = size.height.toInt();
     _damage = ALL;
