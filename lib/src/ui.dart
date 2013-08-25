@@ -202,6 +202,7 @@ class MovieView {
   StreamSubscription _frameSub;
   Rect _damage; // Area of the watched frame that needs re-rendering.
   int _animSub; // Non-null if a render was requested.
+  var _onFrameChange = () {};
 
   StreamSubscription _moveSub;
 
@@ -221,20 +222,19 @@ class MovieView {
       _moveSub = elt.onMouseMove.listen(_mousePaint);
     });
 
-    query("body").onMouseUp.listen((MouseEvent e) {
-      if (_moveSub != null) {
-        _moveSub.cancel();
-      }
-    });
-
-    elt.onMouseOut.listen((MouseEvent e) {
-      if (_moveSub != null) {
-        _moveSub.cancel();
-      }
-    });
+    query("body").onMouseUp.listen((e) => _stopMousePaint());
+    elt.onMouseOut.listen((e) => _stopMousePaint());
 
     elt.onTouchStart.listen(_fingerPaint);
     elt.onTouchMove.listen(_fingerPaint);
+
+    elt.onTouchEnd.listen((TouchEvent e) {
+      if (e.touches.isEmpty) {
+        _onFrameChange = () {};
+      } else {
+        _onFrameChange = () => _fingerPaint(e);
+      }
+    });
 
     window.onResize.listen((e) {
       renderAsync(ALL); // visibility may have changed
@@ -245,6 +245,16 @@ class MovieView {
     int x = (e.offset.x / size.pixelsize).toInt();
     int y = (e.offset.y / size.pixelsize).toInt();
     _frame.set(x, y, brush.selection);
+    // Repeat on each frame if the user is holding down the mouse button
+    _onFrameChange = () => _mousePaint(e);
+  }
+
+  void _stopMousePaint() {
+    if (_moveSub != null) {
+      _moveSub.cancel();
+    }
+    _moveSub = null;
+    _onFrameChange = () {};
   }
 
   void _fingerPaint(TouchEvent e) {
@@ -256,6 +266,8 @@ class MovieView {
       int y = (canvasY / size.pixelsize).toInt();
       _frame.set(x, y, brush.selection);
     }
+    // Repeat on each frame if the user is pressing the canvas
+    _onFrameChange = () => _fingerPaint(e);
   }
 
   void renderAsync(Rect clip) {
@@ -311,9 +323,12 @@ class MovieView {
     if (_frameSub != null) {
       _frameSub.cancel();
     }
+
+    _onFrameChange(); // Paint again on the new frame.
+
     _frameSub = _frame.onChange.listen(renderAsync);
-    _frame.render(elt.context2D, ALL, size.pixelsize);
     _damage = null;
+    _frame.render(elt.context2D, ALL, size.pixelsize);
   }
 }
 
