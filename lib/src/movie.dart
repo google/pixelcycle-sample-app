@@ -6,28 +6,8 @@ import 'package:pixelcycle2/src/palette.dart' show Palette;
 
 const int WIDTH = 60;
 const int HEIGHT = 36;
+const int PIXELSIZE = 2;
 const Rect ALL = const Rect(0, 0, WIDTH, HEIGHT);
-
-class Size {
-  static final List<Size> all = [SMALL, LARGE];
-
-  final String name;
-  final int index;
-  final int pixelsize;
-  const Size._internal(this.name, this.index, this.pixelsize);
-
-  factory Size(String name) => all.firstWhere((s) => s.name == name);
-
-  int get width => WIDTH * pixelsize;
-  int get height => HEIGHT * pixelsize;
-
-  Rect gridToViewCoords(Rect r) {
-    return new Rect(r.left * pixelsize, r.top * pixelsize, r.width * pixelsize, r.height * pixelsize);
-  }
-}
-
-const SMALL = const Size._internal("small", 0, 2);
-const LARGE = const Size._internal("large", 1, 14);
 
 class Movie {
   final Palette palette;
@@ -75,37 +55,30 @@ class Movie {
 
 class Frame {
   final Palette palette;
-  final List<CanvasElement> bufs = Size.all.map((s) => new CanvasElement()).toList();
+  final CanvasElement elt = new CanvasElement();
   final StreamController<Rect> _onChange = new StreamController<Rect>.broadcast();
 
   Frame(this.palette) {
-    for (var s in Size.all) {
-      var elt = bufs[s.index];
-      elt.width = WIDTH * s.pixelsize;
-      elt.height = HEIGHT * s.pixelsize;
-    }
+    elt.width = WIDTH * PIXELSIZE;
+    elt.height = HEIGHT * PIXELSIZE;
     clear(0);
   }
 
   get onChange => _onChange.stream;
 
   void clear(int colorIndex) {
-    for (var s in Size.all) {
-      var c = bufs[s.index].context2D;
-      c.fillStyle = palette[colorIndex];
-      c.fillRect(0, 0, WIDTH * s.pixelsize, HEIGHT * s.pixelsize);
-    }
+    var c = elt.context2D;
+    c.fillStyle = palette[colorIndex];
+    c.fillRect(0, 0, WIDTH * PIXELSIZE, HEIGHT * PIXELSIZE);
     if (_onChange.hasListener) {
       _onChange.add(ALL);
     }
   }
 
   void set(int x, int y, int colorIndex) {
-    for (var s in Size.all) {
-      var c = bufs[s.index].context2D;
-      c.fillStyle = palette[colorIndex];
-      c.fillRect(x * s.pixelsize, y * s.pixelsize, s.pixelsize, s.pixelsize);
-    }
+    var c = elt.context2D;
+    c.fillStyle = palette[colorIndex];
+    c.fillRect(x * PIXELSIZE, y * PIXELSIZE, PIXELSIZE, PIXELSIZE);
     if (_onChange.hasListener) {
       _onChange.add(new Rect(x, y, 1, 1));
     }
@@ -113,12 +86,16 @@ class Frame {
 
   // Draws the pixels within clip to the given context.
   // (The clip is measured in grid coordinates.)
-  void render(CanvasRenderingContext2D c, Size size, Rect clip) {
-    Rect viewRect = size.gridToViewCoords(clip);
-    c.drawImageToRect(bufs[size.index], viewRect, sourceRect: viewRect);
+  void render(CanvasRenderingContext2D c, Rect clip, int pixelsize) {
+    Rect expanded = new Rect(clip.left - 0.5, clip.top - 0.5, clip.width + 1, clip.height + 1).intersection(ALL);
+    c.drawImageToRect(elt, scaleRect(expanded, pixelsize), sourceRect: scaleRect(expanded, PIXELSIZE));
   }
 
-  void renderAt(CanvasRenderingContext2D c, Size size, int x, int y) {
-    c.drawImage(bufs[size.index], x, y);
+  void renderAt(CanvasRenderingContext2D c, int x, int y, int pixelsize) {
+    c.drawImageToRect(elt, new Rect(x, y, WIDTH * pixelsize, HEIGHT * pixelsize), sourceRect: scaleRect(ALL, PIXELSIZE));
   }
+}
+
+Rect scaleRect(Rect r, int pixelsize) {
+  return new Rect(r.left * pixelsize, r.top * pixelsize, r.width * pixelsize, r.height * pixelsize);
 }

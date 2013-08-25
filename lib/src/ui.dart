@@ -3,21 +3,19 @@ library ui;
 import 'dart:async' show StreamSubscription;
 import 'dart:html';
 
-import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame, Size;
+import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame;
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
 import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag;
 
 void onLoad(Player player, Brush brush) {
 
   for (CanvasElement elt in queryAll('.strip')) {
-    var size = new Size(elt.attributes["data-size"]);
     bool vertical = elt.attributes["data-vertical"] == "true";
-    new StripView(player, elt, size, vertical: vertical);
+    new StripView(player, elt, SMALL, vertical: vertical);
   }
 
   for (CanvasElement elt in queryAll('.movie')) {
-    var size = new Size(elt.attributes["data-size"]);
-    new MovieView(player, brush, elt, size);
+    new MovieView(player, brush, elt, LARGE);
   }
 
   for (TableElement elt in queryAll('.palette')) {
@@ -29,8 +27,7 @@ void onLoad(Player player, Brush brush) {
   }
 }
 
-/// Pixels between frames in StripView.
-const SPACER = 10;
+int SPACER = 10;
 
 /// A StripView shows a strip of movie frames with the current frame near the center.
 class StripView {
@@ -138,9 +135,9 @@ class StripView {
       var alphaDist = (framePos - center).abs() / (center * 2);
       c.globalAlpha = 0.8 - alphaDist * 0.6;
       if (vertical) {
-        movie.frames[frame].renderAt(c, size, SPACER, framePos);
+        movie.frames[frame].renderAt(c, SPACER, framePos, size.pixelsize);
       } else {
-        movie.frames[frame].renderAt(c, size, framePos, SPACER);
+        movie.frames[frame].renderAt(c, framePos, SPACER, size.pixelsize);
       }
       frame = (frame + 1) % movie.frames.length;
       framePos += pixelsPerFrame;
@@ -259,7 +256,7 @@ class MovieView {
     _animSub = null;
     _watch(player.currentFrame);
     if (_damage != null) {
-      _frame.render(elt.context2D, size, _damage);
+      _frame.render(elt.context2D, _damage, size.pixelsize);
       _damage = null;
     }
     if (player.playing) {
@@ -277,7 +274,7 @@ class MovieView {
       _frameSub.cancel();
     }
     _frameSub = _frame.onChange.listen(renderAsync);
-    _frame.render(elt.context2D, size, ALL);
+    _frame.render(elt.context2D, ALL, size.pixelsize);
     _damage = null;
   }
 }
@@ -339,3 +336,20 @@ class PaletteView {
     }
   }
 }
+
+class Size {
+  static final List<Size> all = [SMALL, LARGE];
+
+  final String name;
+  final int index;
+  final int pixelsize;
+  const Size._internal(this.name, this.index, this.pixelsize);
+
+  factory Size(String name) => all.firstWhere((s) => s.name == name);
+
+  int get width => WIDTH * pixelsize;
+  int get height => HEIGHT * pixelsize;
+}
+
+const SMALL = const Size._internal("small", 0, 2);
+const LARGE = const Size._internal("large", 1, 14);
