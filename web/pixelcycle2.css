@@ -8,6 +8,10 @@ body {
   margin: 15px;
 }
 
+.landscape {
+  display: none;
+}
+
 .movie {
   margin-top: 5mm;
 }
@@ -29,4 +33,21 @@ body {
 
 .paletteCellSelected {
   outline-width: 3mm;
+}
+
+.portrait canvas {
+  display: block;
+}
+
+
+@media (orientation: landscape) {
+  .portrait {
+    display: none;
+  }
+  .landscape {
+    display: block;
+  }
+  .movie {
+    margin-top: 0;
+  }
 }

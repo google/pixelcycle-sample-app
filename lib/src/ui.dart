@@ -9,18 +9,18 @@ import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag;
 
 void onLoad(Player player, Brush brush) {
 
-  for (CanvasElement elt in queryAll('canvas[class="strip"]')) {
+  for (CanvasElement elt in queryAll('.strip')) {
     var size = new Size(elt.attributes["data-size"]);
     bool vertical = elt.attributes["data-vertical"] == "true";
     new StripView(player, elt, size, vertical: vertical);
   }
 
-  for (CanvasElement elt in queryAll('canvas[class="movie"]')) {
+  for (CanvasElement elt in queryAll('.movie')) {
     var size = new Size(elt.attributes["data-size"]);
     new MovieView(player, brush, elt, size);
   }
 
-  for (TableElement elt in queryAll('table[class="palette"]')) {
+  for (TableElement elt in queryAll('.palette')) {
     int width = brush.palette.length ~/ 4;
     if (elt.attributes.containsKey("data-width")) {
       width = int.parse(elt.attributes["data-width"]);
@@ -111,7 +111,7 @@ class StripView {
   }
 
   void renderAsync() {
-    if (_animSub == null) {
+    if (_animSub == null && elt.style.display != "none") {
       _animSub = window.requestAnimationFrame(_render);
     }
   }
@@ -249,7 +249,7 @@ class MovieView {
     } else if (clip != null) {
       _damage = _damage.union(clip);
     }
-    if (_animSub == null) {
+    if (_animSub == null && elt.style.display != "none") {
       _animSub = window.requestAnimationFrame(_render);
     }
   }

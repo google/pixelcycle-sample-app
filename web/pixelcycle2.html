@@ -7,16 +7,21 @@
     <link rel="stylesheet" href="pixelcycle2.css">
   </head>
   <body>
-    <div>
-    <canvas class="strip" data-size="small" data-vertical="false">
-    </canvas>
+    <div class="portrait">
+      <canvas class="strip" data-size="small" data-vertical="false">
+      </canvas>
+      <canvas class="movie" data-size="large">
+      </canvas>
     </div>
-    <div>
-    <canvas class="movie" data-size="large">
-    </canvas>
+
+    <div class="landscape">
+      <table><tr>
+      <td><canvas class="strip" data-size="small" data-vertical="true"></canvas></td>
+      <td><canvas class="movie" data-size="large"></canvas></td>
+      </tr></table>
     </div>
-    <table class="palette">
-    </table>
+
+    <table class="palette"></table>
 
     <script type="application/dart" src="pixelcycle2.dart"></script>
     <script src="packages/browser/dart.js"></script>

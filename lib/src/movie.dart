@@ -27,7 +27,7 @@ class Size {
 }
 
 const SMALL = const Size._internal("small", 0, 2);
-const LARGE = const Size._internal("large", 1, 16);
+const LARGE = const Size._internal("large", 1, 14);
 
 class Movie {
   final Palette palette;
