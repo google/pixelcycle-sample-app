@@ -8,13 +8,25 @@ body {
   margin: 15px;
 }
 
-h1, p {
-  color: #333;
+.movie {
+  margin-top: 5mm;
 }
 
-/*
-canvas.strip {
-  float: left;
-  margin-right: 10px;
+.palette {
+  border-collapse: collapse;
+  margin-top: 5mm;
 }
-*/
+
+.paletteCell {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border: 0;
+  outline:solid;
+  outline-width: 0;
+  transition: outline-width .1s;
+}
+
+.paletteCellSelected {
+  outline-width: 3mm;
+}

@@ -4,9 +4,10 @@ import 'dart:async' show StreamSubscription;
 import 'dart:html';
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame, Size;
+import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
 import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag;
 
-void onLoad(Player player) {
+void onLoad(Player player, Brush brush) {
 
   for (CanvasElement elt in queryAll('canvas[class="strip"]')) {
     var size = new Size(elt.attributes["data-size"]);
@@ -16,7 +17,15 @@ void onLoad(Player player) {
 
   for (CanvasElement elt in queryAll('canvas[class="movie"]')) {
     var size = new Size(elt.attributes["data-size"]);
-    new MovieView(player, elt, size);
+    new MovieView(player, brush, elt, size);
+  }
+
+  for (TableElement elt in queryAll('table[class="palette"]')) {
+    int width = brush.palette.length ~/ 4;
+    if (elt.attributes.containsKey("data-width")) {
+      width = int.parse(elt.attributes["data-width"]);
+    }
+    new PaletteView(brush, elt, width);
   }
 }
 
@@ -174,18 +183,17 @@ class StripView {
 /// often.
 class MovieView {
   final Player player;
+  final Brush brush;
   final CanvasElement elt;
   final Size size;
   Frame _frame; // The most recently rendered frame (being watched).
   StreamSubscription _frameSub;
   Rect _damage; // Area of the watched frame that needs re-rendering.
   int _animSub; // Non-null if a render was requested.
-  int colorIndex = 1;
 
   StreamSubscription _moveSub;
 
-  MovieView(this.player, this.elt, this.size) {
-    print("moviesize: ${size.pixelsize}");
+  MovieView(this.player, this.brush, this.elt, this.size) {
     elt.width = WIDTH * size.pixelsize;
     elt.height = HEIGHT * size.pixelsize;
 
@@ -199,7 +207,6 @@ class MovieView {
         return;
       }
       _mousePaint(e);
-      colorIndex = (colorIndex + 1) % 50;
       _moveSub = elt.onMouseMove.listen(_mousePaint);
     });
 
@@ -222,7 +229,7 @@ class MovieView {
   void _mousePaint(MouseEvent e) {
     int x = (e.offset.x / size.pixelsize).toInt();
     int y = (e.offset.y / size.pixelsize).toInt();
-    _frame.set(x, y, colorIndex);
+    _frame.set(x, y, brush.selection);
   }
 
   void _fingerPaint(TouchEvent e) {
@@ -232,7 +239,7 @@ class MovieView {
       int canvasY = t.page.y - elt.offsetTop;
       int x = (canvasX / size.pixelsize).toInt();
       int y = (canvasY / size.pixelsize).toInt();
-      _frame.set(x, y, colorIndex);
+      _frame.set(x, y, brush.selection);
     }
   }
 
@@ -272,5 +279,63 @@ class MovieView {
     _frameSub = _frame.onChange.listen(renderAsync);
     _frame.render(elt.context2D, size, ALL);
     _damage = null;
+  }
+}
+
+class PaletteView {
+  final Brush brush;
+  final TableElement elt;
+  List<TableCellElement> cells;
+  PaletteView(this.brush, this.elt, int width) {
+    cells = new List<TableCellElement>(palette.length);
+    _initTable(width);
+
+    elt.onClick.listen((MouseEvent e) {
+      Element t = e.target;
+      var id = t.dataset["id"];
+      if (id != null) {
+        brush.selection = int.parse(id);
+      }
+    });
+
+    brush.onChange.listen((index) {
+      render();
+    });
+  }
+
+  _initTable(int width) {
+    var row = new TableRowElement();
+    for (int i = 0; i < palette.length; i++) {
+      if (row.children.length == width) {
+        elt.append(row);
+        row = new TableRowElement();
+      }
+      var td = new TableCellElement();
+      td.classes.add("paletteCell");
+      td.dataset["id"] = i.toString();
+      td.style.backgroundColor = palette[i];
+      td.style.outlineColor = palette[i];
+      cells[i] = td;
+      row.append(td);
+      renderCell(i);
+    }
+    elt.append(row);
+  }
+
+  Palette get palette => brush.palette;
+
+  void render() {
+    for (int i = 0; i < palette.length; i++) {
+      renderCell(i);
+    }
+  }
+
+  void renderCell(int i) {
+    var td = cells[i];
+    if (i == brush.selection) {
+      td.classes.add("paletteCellSelected");
+    } else {
+      td.classes.remove("paletteCellSelected");
+    }
   }
 }
