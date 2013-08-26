@@ -276,7 +276,7 @@ class MovieView {
     } else if (clip != null) {
       _damage = _damage.union(clip);
     }
-    if (_animSub == null && elt.style.display != "none") {
+    if (_animSub == null && elt.clientWidth > 0) {
       _animSub = window.requestAnimationFrame(_render);
     }
   }
@@ -398,4 +398,4 @@ class Size {
 }
 
 const SMALL = const Size(2);
-const LARGE = const Size(14);
+const LARGE = const Size(15);

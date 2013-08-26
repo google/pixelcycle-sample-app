@@ -6,6 +6,7 @@ import 'package:pixelcycle2/src/ui.dart' as ui;
 void main() {
   var palette = new Palette.standard();
   var brush = new Brush(palette);
+  brush.selection = 26;
   var movie = new Movie.blank(palette, 8);
   var player = new Player(movie);
 
