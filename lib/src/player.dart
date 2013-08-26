@@ -4,16 +4,19 @@ import 'dart:html';
 import 'dart:async' show Stream, StreamController, StreamSubscription;
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
 
-/// The Player represents the position and speed at which the movie is playing.
+/// A Player contains the position and speed at which the movie is playing.
+/// A position is represented as float between 0 up to (and not including) the number of frames in the movie.
+/// The first frame is shown for positions 0 to 1, the second, from 1 to 2, and so on.
+/// Time is in seconds since the zero time used by window.performance.now(), which is typically the page load.
+/// Speeds are in frames per second.
 class Player {
   final Movie movie;
   final StreamController<Player> _onChange = new StreamController<Player>.broadcast();
 
-  // The time in seconds since the window.performance.now() epoch when the movie started playing, or null if not playing.
+  // The time when the movie started playing, or null if it's not playing.
   num _startTime = null;
 
-  // The position in the movie where it started playing, or will play.
-  // This is a number between 0 (the first frame) and the length of the movie in frames.
+  // The position where the movie started playing, or will play if it's not playing.
   num _startPosition = 0;
 
   // The speed at which the movie is playing, or will play. May be negative to play backwards.
@@ -51,26 +54,23 @@ class Player {
   }
 
   set speed(num newValue) {
-    num t = now();
-    _startPosition = positionAt(t);
+    if (playing) {
+      num t = now();
+      _startPosition = positionAt(t);
+      _startTime = t;
+    }
     _speed = newValue;
-    _startTime = playing ? t : null;
     if (_speed == 0) {
       playing = false;
     }
   }
 
-  /// Modifies movie's starting position and speed based on a drag. Also pauses the player.
-  /// The position will have deltaPos added to it and the speed will be set to deltaPos / deltaT.
-  void drag(num deltaPos, num deltaT) {
-    if (deltaT == 0) {
-      return;
-    }
+  /// Stops playing and adds the given delta to the position.
+  void drag(num deltaPos) {
     if (playing) {
       _stop();
     }
     _startPosition = (_startPosition + deltaPos) % movie.frames.length;
-    _speed = deltaPos / deltaT;
     if (_onChange.hasListener) {
       _onChange.add(this);
     }
@@ -83,7 +83,15 @@ class Player {
     if (!playing) {
       return _startPosition;
     }
-    return (_startPosition + (time - _startTime) * _speed) % movie.frames.length;
+    num pos = (_startPosition + (time - _startTime) * _speed) % movie.frames.length;
+
+    // If we're going too fast to animate transitions between frames, always use
+    // the halfway point between frame changes.
+    if (_speed.abs() >= 15) {
+      return (pos ~/ 1) + 0.5;
+    }
+
+    return pos;
   }
 
   num get position => positionAt(now());
@@ -100,37 +108,85 @@ class PlayDrag {
   final Player player;
   final StreamSubscription moveSub;
   final touchId;
-  num lastTime;
-  num lastPos;
+  final List<num> times = new List<num>();
+  final List<num> positions = new List<num>();
+  num lastSpeed;
 
   PlayDrag.start(this.player, this.moveSub, num pos, {this.touchId}) {
     player.playing = false;
     player.speed = 0;
-    lastTime = now();
-    lastPos = pos;
+    times.add(now());
+    positions.add(pos);
+    lastSpeed = 0;
   }
 
   void update(num pos) {
-    num now = window.performance.now() / 1000.0;
-    num deltaPos = pos - lastPos;
-    num deltaT = now - lastTime;
-    // negate the position because dragging forward causes the movie to play backwards.
-    player.drag(-deltaPos, deltaT);
-    lastPos = pos;
-    lastTime = now;
+    num time = now();
+
+    // Update position (negative because dragging forward causes the movie to play backwards).
+    player.drag(-(pos - positions.last));
+
+    // try to find a sample about .1 seconds ago, for a better speed estimate
+    num maxAge = .1;
+    var lastTime = times.last;
+    var lastPos = positions.last;
+    for (int i = times.length - 2; i >= 0; i--) {
+      if ((time - times[i]) < maxAge) {
+        lastTime = times[i];
+        lastPos = positions[i];
+      }
+    }
+
+    num deltaT = time - lastTime;
+    num deltaPos = -(pos - lastPos); // negate for dragging
+    lastSpeed = _chooseSpeed(deltaPos, deltaT);
+
+    positions.add(pos);
+    times.add(time);
   }
 
   void finish() {
     num time = now();
-    if (time - lastTime > 0.2) {
+    if (time - times.last > 0.2) {
+      // No recent drag events; assume stopped.
       player.speed = 0;
+    } else {
+      player.speed = lastSpeed;
     }
     player.playing = true;
     moveSub.cancel();
   }
+
+  num _chooseSpeed(num deltaPos, num deltaT) {
+    if (deltaT == 0) {
+      return lastSpeed;
+    }
+
+    num speed = deltaPos / deltaT;
+
+    // Clamp to some common speeds for fast animation.
+    num sign = speed.isNegative ? -1 : 1;
+    num mag = speed.abs();
+    if (mag > 40) {
+      return sign * 60;
+    } else if (mag > 21) {
+      return sign * 30;
+    } else if (mag >= 16) {
+      return sign * 20;
+    } else if (mag >= 13) {
+      return sign * 15;
+    }
+
+    // Make it easier to stop.
+    if (mag < 0.5) {
+      return 0;
+    }
+
+    return speed;
+  }
 }
 
-// The time in seconds since the window.performance.now() Epoch.
+// The time in seconds since the window.performance.now() starting time.
 num now() {
   return window.performance.now() / 1000;
 }
