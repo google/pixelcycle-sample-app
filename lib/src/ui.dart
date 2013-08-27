@@ -6,8 +6,13 @@ import 'dart:html';
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame;
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
 import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag;
+import 'package:pixelcycle2/src/server.dart' as server;
 
 void onLoad(Player player, Brush brush) {
+
+  for (ButtonElement elt in queryAll('.share')) {
+    elt.onClick.listen((e) => handleShare(player, elt));
+  }
 
   for (CanvasElement elt in queryAll('.strip')) {
     bool vertical = elt.attributes["data-vertical"] == "true";
@@ -25,6 +30,23 @@ void onLoad(Player player, Brush brush) {
     }
     new PaletteView(brush, elt, width);
   }
+}
+
+void handleShare(Player player, ButtonElement elt) {
+  elt.disabled = true;
+  String data = player.serialize();
+  server.save(data).then((String url) {
+    if (History.supportsState) {
+      window.history.pushState(data, "", url);
+    } else {
+      window.location.assign(url);
+    }
+  }).catchError((e) {
+    print("error: ${e}");
+    window.alert("unable to Share");
+  }).whenComplete(() {
+    elt.disabled = false;
+  });
 }
 
 int SPACER = 10;

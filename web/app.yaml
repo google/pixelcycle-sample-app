@@ -1,0 +1,23 @@
+application: pixelcycle
+version: draft
+runtime: go
+api_version: go1
+
+handlers:
+- url: /
+  static_files: pixelcycle2.html
+  upload: pixelcycle2.html
+
+- url: /m/[0-9]+
+  static_files: pixelcycle2.html
+  upload: pixelcycle2.html
+
+- url: /(m/)?(.*\.(css|js))
+  static_files: \2
+  upload: (.*\.(css|js))
+
+- url: /_load
+  script: _go_app
+
+- url: /_share
+  script: _go_app

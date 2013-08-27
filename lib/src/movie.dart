@@ -1,6 +1,6 @@
 library movie;
 
-import 'dart:html' show CanvasElement, CanvasRenderingContext2D, Rect;
+import 'dart:html' show CanvasElement, CanvasRenderingContext2D, Rect, Point;
 import 'dart:async' show Stream, StreamController;
 import 'package:pixelcycle2/src/palette.dart' show Palette;
 
@@ -56,6 +56,7 @@ class Movie {
 class Frame {
   final Palette palette;
   final CanvasElement elt = new CanvasElement();
+  final List<int> pixels = new List<int>(WIDTH * HEIGHT);
   final StreamController<Rect> _onChange = new StreamController<Rect>.broadcast();
 
   Frame(this.palette) {
@@ -64,9 +65,23 @@ class Frame {
     clear(0);
   }
 
+  factory Frame.fromPixels(Palette palette, List<int> pixels) {
+    Frame f = new Frame(palette);
+    assert(pixels.length == WIDTH * HEIGHT);
+    for (int y = 0; y < HEIGHT; y++) {
+      for (int x = 0; x < WIDTH; x++) {
+        int p = pixels[x + y * WIDTH];
+        assert (p >= 0 && p < palette.length);
+        f.set(x, y, p);
+      }
+    }
+    return f;
+  }
+
   get onChange => _onChange.stream;
 
   void clear(int colorIndex) {
+    pixels.fillRange(0, pixels.length, colorIndex);
     var c = elt.context2D;
     c.fillStyle = palette[colorIndex];
     c.fillRect(0, 0, WIDTH * PIXELSIZE, HEIGHT * PIXELSIZE);
@@ -76,6 +91,12 @@ class Frame {
   }
 
   void set(int x, int y, int colorIndex) {
+    assert(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT);
+    int index = x + y * WIDTH;
+    if (pixels[index] == colorIndex) {
+      return;
+    }
+    pixels[index] = colorIndex;
     var c = elt.context2D;
     c.fillStyle = palette[colorIndex];
     c.fillRect(x * PIXELSIZE, y * PIXELSIZE, PIXELSIZE, PIXELSIZE);

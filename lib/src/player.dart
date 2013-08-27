@@ -2,6 +2,8 @@ library player;
 
 import 'dart:html';
 import 'dart:async' show Stream, StreamController, StreamSubscription;
+import 'dart:json' as json;
+
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
 
 /// A Player contains the position and speed at which the movie is playing.
@@ -53,6 +55,8 @@ class Player {
     _startTime = null;
   }
 
+  num get speed => _speed;
+
   set speed(num newValue) {
     if (playing) {
       num t = now();
@@ -100,6 +104,17 @@ class Player {
   Frame frameAt(num time) => movie.frames[(positionAt(time) ~/ 1)];
 
   Frame get currentFrame => frameAt(now());
+
+  /// Serializes the state of the player.
+  String serialize() {
+    return json.stringify({
+      'Version': 1,
+      'Speed': speed,
+      'Width': WIDTH,
+      'Height': HEIGHT,
+      'Frames': movie.frames.map((f) => json.stringify(f.pixels)).toList(growable: false),
+    });
+  }
 }
 
 /// The state of an in-progress drag that will change how fast the movie plays.

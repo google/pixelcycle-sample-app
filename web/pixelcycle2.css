@@ -1,11 +1,15 @@
 
 body {
   background-color: #F8F8F8;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
-  font-weight: normal;
-  line-height: 1.2em;
   margin: 15px;
+}
+
+.inline {
+  display: inline;
+}
+
+tr {
+  vertical-align: top;
 }
 
 .landscape {
@@ -31,6 +35,15 @@ body {
   outline-width: 3mm;
 }
 
+.portrait h1 {
+  margin-bottom: 0;
+}
+
+.portrait .btn {
+  margin-bottom: 11px;
+  margin-left: 10px;
+}
+
 .portrait canvas {
   display: block;
   width: 100%;
@@ -42,6 +55,11 @@ body {
 
 .landscape table {
   border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.landscape td {
+  padding: 0;
 }
 
 .landscape .movie {
@@ -53,11 +71,102 @@ body {
   height: 432px;
 }
 
-@media (orientation: landscape) and (min-width: 900px) {
+.landscape .btn {
+  margin-left: 10px;
+}
+
+.landscape .share {
+  margin-top: 0;
+}
+
+
+@media (orientation: landscape) and (min-width: 960px) {
   .portrait {
     display: none;
   }
   .landscape {
     display: block;
   }
+}
+
+/* styles based on bootstrap 3.0 */
+
+h1 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: 36px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.428571429;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
+}
+
+.btn:focus {
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+.btn:hover,
+.btn:focus {
+  color: #333333;
+  text-decoration: none;
+}
+
+.btn:active {
+  background-image: none;
+  outline: 0;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+          box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.btn[disabled] {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.65;
+  filter: alpha(opacity=65);
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.btn-primary {
+  color: #ffffff;
+  background-color: #428bca;
+  border-color: #357ebd;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  color: #ffffff;
+  background-color: #3276b1;
+  border-color: #285e8e;
+}
+
+.btn-primary[disabled],
+.btn-primary[disabled]:hover,
+.btn-primary[disabled]:focus,
+.btn-primary[disabled]:active {
+  background-color: #428bca;
+  border-color: #357ebd;
 }
