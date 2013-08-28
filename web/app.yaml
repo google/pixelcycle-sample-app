@@ -12,9 +12,13 @@ handlers:
   static_files: pixelcycle2.html
   upload: pixelcycle2.html
 
-- url: /(.*\.(css|js))
+- url: /(.*\.(css|js|js\.map))
   static_files: \1
   upload: (.*\.(css|js))
+
+- url: /(packages/pixelcycle2/src/.*\.dart)
+  static_files: \1
+  upload: /packages/pixelcycle2/src/.*\.dart
 
 - url: /_load
   script: _go_app
