@@ -43,5 +43,5 @@ func shareHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "/m/%v", k.IntID())
+	fmt.Fprintf(w, "/m%v", k.IntID())
 }

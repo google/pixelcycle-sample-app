@@ -8,7 +8,7 @@ import 'package:pixelcycle2/src/player.dart' show Player;
 import 'package:pixelcycle2/src/server.dart' as server;
 import 'package:pixelcycle2/src/ui.dart' as ui;
 
-RegExp savedMoviePath = new RegExp(r"^/m/(\d+)$");
+RegExp savedMoviePath = new RegExp(r"^/m(\d+)$");
 
 void main() {
   var palette = new Palette.standard();

@@ -36,11 +36,7 @@ void handleShare(Player player, ButtonElement elt) {
   elt.disabled = true;
   String data = player.serialize();
   server.save(data).then((String url) {
-    if (History.supportsState) {
-      window.history.pushState(data, "", url);
-    } else {
-      window.location.assign(url);
-    }
+    window.location.assign(url);
   }).catchError((e) {
     print("error: ${e}");
     window.alert("unable to Share");

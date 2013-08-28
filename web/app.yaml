@@ -8,12 +8,12 @@ handlers:
   static_files: pixelcycle2.html
   upload: pixelcycle2.html
 
-- url: /m/[0-9]+
+- url: /m[0-9]+
   static_files: pixelcycle2.html
   upload: pixelcycle2.html
 
-- url: /(m/)?(.*\.(css|js))
-  static_files: \2
+- url: /(.*\.(css|js))
+  static_files: \1
   upload: (.*\.(css|js))
 
 - url: /_load
