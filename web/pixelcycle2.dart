@@ -11,6 +11,7 @@ import 'package:pixelcycle2/src/ui.dart' as ui;
 RegExp savedMoviePath = new RegExp(r"^/m(\d+)$");
 
 void main() {
+  print("main entered");
   var palette = new Palette.standard();
   var brush = new Brush(palette);
   brush.selection = 26;

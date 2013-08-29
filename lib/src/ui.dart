@@ -56,7 +56,7 @@ class StripView {
   int pixelsPerFrame;
   Frame _frame;
   StreamSubscription _frameSub;
-  int _animSub;
+  DateTime _redrawWanted;
   PlayDrag _drag;
 
   StripView(this.player, this.elt, this.size, {this.vertical: false}) {
@@ -135,13 +135,14 @@ class StripView {
   }
 
   void renderAsync() {
-    if (_animSub == null && elt.clientWidth > 0) {
-      _animSub = window.requestAnimationFrame(_render);
+    if (_redrawWanted == null && elt.clientWidth > 0) {
+      window.requestAnimationFrame(_render);
+      _redrawWanted = new DateTime.now();
     }
   }
 
   void _render(num millis) {
-    _animSub = null;
+    _redrawWanted = null;
 
     num moviePosition = player.positionAt(millis/1000);
     int currentFrame = moviePosition ~/ 1;
@@ -219,7 +220,7 @@ class MovieView {
   Frame _frame; // The most recently rendered frame (being watched).
   StreamSubscription _frameSub;
   Rect _damage; // Area of the watched frame that needs re-rendering.
-  int _animSub; // Non-null if a render was requested.
+  DateTime _redrawWanted; // Non-null if a render was requested.
   var _onFrameChange = () {};
 
   StreamSubscription _moveSub;
@@ -294,14 +295,15 @@ class MovieView {
     } else if (clip != null) {
       _damage = _damage.union(clip);
     }
-    if (_animSub == null && elt.clientWidth > 0) {
-      _animSub = window.requestAnimationFrame(_render);
+    if (_redrawWanted == null && elt.clientWidth > 0) {
+      window.requestAnimationFrame(_render);
+      _redrawWanted = new DateTime.now();
     }
   }
 
   /// Render the player's currently watched frame if needed.
   void _render(t) {
-    _animSub = null;
+    _redrawWanted = null;
     _resize();
     _watch(player.currentFrame);
     if (_damage != null) {
