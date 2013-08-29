@@ -5,7 +5,7 @@ import 'dart:html';
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame;
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
-import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag;
+import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag, FrameStack;
 import 'package:pixelcycle2/src/server.dart' as server;
 
 void onLoad(Player player, Brush brush) {
@@ -217,7 +217,7 @@ class MovieView {
   final Brush brush;
   final CanvasElement elt;
   Size size;
-  Frame _frame; // The most recently rendered frame (being watched).
+  FrameStack _frame; // The most recently rendered frame (being watched) and the one behind it.
   StreamSubscription _frameSub;
   Rect _damage; // Area of the watched frame that needs re-rendering.
   DateTime _redrawWanted; // Non-null if a render was requested.
@@ -263,7 +263,7 @@ class MovieView {
   void _mousePaint(MouseEvent e) {
     int x = (e.offset.x / size.pixelsize).toInt();
     int y = (e.offset.y / size.pixelsize).toInt();
-    _frame.set(x, y, brush.selection);
+    _frame.front.set(x, y, brush.selection);
     // Repeat on each frame if the user is holding down the mouse button
     _onFrameChange = () => _mousePaint(e);
   }
@@ -283,7 +283,7 @@ class MovieView {
       int canvasY = t.page.y - elt.documentOffset.y;
       int x = (canvasX / size.pixelsize).toInt();
       int y = (canvasY / size.pixelsize).toInt();
-      _frame.set(x, y, brush.selection);
+      _frame.front.set(x, y, brush.selection);
     }
     // Repeat on each frame if the user is pressing the canvas
     _onFrameChange = () => _fingerPaint(e);
@@ -305,9 +305,9 @@ class MovieView {
   void _render(t) {
     _redrawWanted = null;
     _resize();
-    _watch(player.currentFrame);
+    _watch(player.frameStack);
     if (_damage != null) {
-      _frame.render(elt.context2D, _damage, size.pixelsize);
+      _renderBlended(ALL);
       _damage = null;
     }
     if (player.playing) {
@@ -335,20 +335,36 @@ class MovieView {
   }
 
   /// Change the currently watched frame, updating the frame subscription if needed.
-  void _watch(Frame newFrame) {
+  void _watch(FrameStack newFrame) {
     if (_frame == newFrame) {
       return;
     }
-    _frame = newFrame;
-    if (_frameSub != null) {
+    bool frameChanged = _frame == null || _frame.front != newFrame.front;
+    if (frameChanged && _frameSub != null) {
       _frameSub.cancel();
     }
-
-    _onFrameChange(); // Paint again on the new frame.
-
-    _frameSub = _frame.onChange.listen(renderAsync);
+    _frame = newFrame;
+    if (frameChanged) {
+      _onFrameChange(); // Paint again on the new frame.
+      _frameSub = _frame.front.onChange.listen(renderAsync);
+    }
+    _renderBlended(ALL);
     _damage = null;
-    _frame.render(elt.context2D, ALL, size.pixelsize);
+  }
+
+  void _renderBlended(Rect clip) {
+      var c = elt.context2D;
+      c.imageSmoothingEnabled = false;
+      c.globalAlpha = 1;
+      if (_frame.frontAlpha != 1) {
+        c.fillStyle = "#000";
+        c.fillRect(clip.left, clip.top, clip.width, clip.height);
+        c.globalAlpha = 0.5;
+        _frame.back.render(c, clip, size.pixelsize);
+        c.globalAlpha = _frame.frontAlpha;
+      }
+      _frame.front.render(c, clip, size.pixelsize);
+      c.globalAlpha = 1;
   }
 }
 

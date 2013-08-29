@@ -105,6 +105,17 @@ class Player {
 
   Frame get currentFrame => frameAt(now());
 
+  FrameStack get frameStack {
+    num pos = positionAt(now());
+    int current = pos ~/ 1;
+    num fraction = pos - current;
+
+    int other = (fraction < 0.5 ? (current - 1) : (current + 1)) % movie.frames.length;
+    num edgeDist = 0.5 - (fraction - 0.5).abs();
+    num alpha = (0.5 + edgeDist * 2).clamp(0, 1);
+    return new FrameStack(movie.frames[other], movie.frames[current], alpha);
+  }
+
   /// Serializes the state of the player.
   String serialize() {
     return json.stringify({
@@ -114,6 +125,22 @@ class Player {
       'Height': HEIGHT,
       'Frames': movie.frames.map((f) => json.stringify(f.pixels)).toList(growable: false),
     });
+  }
+}
+
+class FrameStack {
+  final Frame back;
+  final Frame front;
+  final num frontAlpha;
+
+  FrameStack(this.back, this.front, this.frontAlpha);
+
+  bool operator==(FrameStack other) {
+    return back==other.back && front==other.front && frontAlpha == other.frontAlpha;
+  }
+
+  int get hashCode {
+    return front.hashCode ^ back.hashCode ^ frontAlpha.hashCode;
   }
 }
 
