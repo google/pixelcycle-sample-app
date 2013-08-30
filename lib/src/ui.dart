@@ -7,11 +7,24 @@ import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movi
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
 import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag, FrameStack;
 import 'package:pixelcycle2/src/server.dart' as server;
+import 'package:pixelcycle2/src/util.dart' as util;
 
-void onLoad(Player player, Brush brush) {
+void onLoad(Player player, Brush brush, util.Text status) {
+
+  List<HtmlElement> statusElts = queryAll('.status');
+  status.onChange.listen((value) {
+    for (HtmlElement elt in statusElts) {
+      elt.text = value;
+      if (value == null) {
+        elt.classes.add("fade-hidden");
+      } else {
+        elt.classes.remove("fade-hidden");
+      }
+    }
+  });
 
   for (ButtonElement elt in queryAll('.share')) {
-    elt.onClick.listen((e) => handleShare(player, elt));
+    elt.onClick.listen((e) => handleShare(player, elt, status));
   }
 
   for (CanvasElement elt in queryAll('.strip')) {
@@ -32,14 +45,16 @@ void onLoad(Player player, Brush brush) {
   }
 }
 
-void handleShare(Player player, ButtonElement elt) {
+void handleShare(Player player, ButtonElement elt, util.Text status) {
   elt.disabled = true;
+  status.value = "Saving movie";
   String data = player.serialize();
   server.save(data).then((String url) {
     window.location.assign(url);
+    status.value = "";
   }).catchError((e) {
     print("error: ${e}");
-    window.alert("unable to Share");
+    status.value = "Unable to save";
   }).whenComplete(() {
     elt.disabled = false;
   });

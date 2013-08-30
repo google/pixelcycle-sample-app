@@ -1,5 +1,9 @@
 
 body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.428571429;
+  color: #333333;
   background-color: #F8F8F8;
   margin: 15px;
 }
@@ -14,6 +18,19 @@ tr {
 
 .landscape {
   display: none;
+}
+
+.status {
+  background-color: #fefbed;
+  padding: 5px 5px 5px 5px;
+  border-left: 5px solid #f1e7bc;
+  border-right: 5px solid #f1e7bc;
+  opacity: 1;
+  transition: opacity .25s ease-in-out;
+}
+
+.fade-hidden {
+  opacity: 0;
 }
 
 .palette {
@@ -40,8 +57,18 @@ tr {
 }
 
 .portrait .btn {
-  margin-bottom: 11px;
+  padding-bottom: 5px;
+  margin-bottom: 12px;
   margin-left: 10px;
+}
+
+.portrait .status {
+  margin-left: 15px;
+  display: inline-block;
+}
+
+.portrait .hidden {
+  display: none;
 }
 
 .portrait canvas {
@@ -72,6 +99,11 @@ tr {
 }
 
 .landscape .btn {
+  margin-left: 10px;
+}
+
+.landscape .status {
+  margin-top: 10px;
   margin-left: 10px;
 }
 

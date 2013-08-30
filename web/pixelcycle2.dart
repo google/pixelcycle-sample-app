@@ -7,17 +7,20 @@ import 'package:pixelcycle2/src/movie.dart' show Movie, Frame, WIDTH, HEIGHT;
 import 'package:pixelcycle2/src/player.dart' show Player;
 import 'package:pixelcycle2/src/server.dart' as server;
 import 'package:pixelcycle2/src/ui.dart' as ui;
+import 'package:pixelcycle2/src/util.dart' as util;
 
 RegExp savedMoviePath = new RegExp(r"^/m(\d+)$");
 
 void main() {
   print("main entered");
-  var palette = new Palette.standard();
-  var brush = new Brush(palette);
-  brush.selection = 26;
 
+  var palette = new Palette.standard();
   loadPlayer(palette).then((Player player) {
-    ui.onLoad(player, brush);
+    var status = new util.Text();
+    var brush = new Brush(palette);
+    brush.selection = 26;
+
+    ui.onLoad(player, brush, status);
     player.playing = true;
   });
 }
