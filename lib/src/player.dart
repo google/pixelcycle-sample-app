@@ -101,7 +101,7 @@ class Player {
   num get position => positionAt(now());
 
   /// Returns the frame to display at the given time.
-  Frame frameAt(num time) => movie.frames[(positionAt(time) ~/ 1)];
+  Frame frameAt(num time) => movie[(positionAt(time) ~/ 1)];
 
   Frame get currentFrame => frameAt(now());
 
@@ -110,11 +110,11 @@ class Player {
     int current = pos ~/ 1;
     num fraction = pos - current;
 
-    int other = (fraction < 0.5 ? (current - 1) : (current + 1)) % movie.frames.length;
+    int other = (fraction < 0.5 ? (current - 1) : (current + 1)) % movie.length;
     num edgeDist = 0.5 - (fraction - 0.5).abs();
     num backBrightness = (0.9 - edgeDist * 2).clamp(0, 1);
     num frontAlpha = (0.7 + edgeDist).clamp(0, 1);
-    return new FrameStack(movie.frames[other], backBrightness, movie.frames[current], frontAlpha);
+    return new FrameStack(movie[other], backBrightness, movie[current], frontAlpha);
   }
 
   /// Serializes the state of the player.

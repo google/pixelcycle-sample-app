@@ -14,11 +14,12 @@ void onLoad(Player player, Brush brush, util.Text status) {
   List<HtmlElement> statusElts = queryAll('.status');
   status.onChange.listen((value) {
     for (HtmlElement elt in statusElts) {
-      elt.text = value;
       if (value == null) {
         elt.classes.add("fade-hidden");
       } else {
+        elt.text = value;
         elt.classes.remove("fade-hidden");
+        player.movie.onChange.first.then((e) => status.value = null);
       }
     }
   });
@@ -47,11 +48,12 @@ void onLoad(Player player, Brush brush, util.Text status) {
 
 void handleShare(Player player, ButtonElement elt, util.Text status) {
   elt.disabled = true;
-  status.value = "Saving movie";
+  status.value = "Saving...";
   String data = player.serialize();
   server.save(data).then((String url) {
+    status.value = "Reloading...";
+    window.sessionStorage["loadMessage"] = "Saved. You can share this page.";
     window.location.assign(url);
-    status.value = "";
   }).catchError((e) {
     print("error: ${e}");
     status.value = "Unable to save";

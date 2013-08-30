@@ -17,11 +17,17 @@ void main() {
   var palette = new Palette.standard();
   loadPlayer(palette).then((Player player) {
     var status = new util.Text();
+
     var brush = new Brush(palette);
     brush.selection = 26;
 
     ui.onLoad(player, brush, status);
     player.playing = true;
+
+    if (window.sessionStorage["loadMessage"] != null) {
+      status.value = window.sessionStorage["loadMessage"];
+      window.sessionStorage.remove("loadMessage");
+    }
   });
 }
 
@@ -53,7 +59,7 @@ Player deserializePlayer(Palette palette, String dataString) {
   for (String frameString in data["Frames"]) {
     List<int> pixels = json.parse(frameString);
     Frame f = new Frame.fromPixels(palette, pixels);
-    movie.frames.add(f);
+    movie.add(f);
   }
   var player = new Player(movie);
   player.speed = data["Speed"];

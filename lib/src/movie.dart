@@ -11,46 +11,35 @@ const Rect ALL = const Rect(0, 0, WIDTH, HEIGHT);
 
 class Movie {
   final Palette palette;
-  final List<Frame> frames = new List<Frame>();
+  final List<Frame> _frames = new List<Frame>();
+  final StreamController<Frame> _onChange = new StreamController<Frame>.broadcast();
 
   Movie(this.palette);
 
   factory Movie.blank(Palette palette, int frameCount) {
     Movie m = new Movie(palette);
     for (int i = 0; i < frameCount; i++) {
-      m.frames.add(new Frame(palette));
+      m.add(new Frame(palette));
     }
     return m;
   }
 
-  factory Movie.dazzle(Palette palette) {
-    Movie m = new Movie(palette);
-    for (int findex = 0; findex < palette.colors.length; findex++) {
-      var f = new Frame(palette);
-      for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
-          f.set(x, y, (x + y + findex) % palette.colors.length);
-        }
+  Stream<Frame> get onChange => _onChange.stream;
+
+  void add(Frame frame) {
+    _frames.add(frame);
+    frame.onChange.listen((e) {
+      if (_onChange.hasListener) {
+        _onChange.add(frame);
       }
-      m.frames.add(f);
-    }
-    return m;
+    });
   }
 
-  factory Movie.wiper(Palette palette) {
-    Movie m = new Movie(palette);
-    var frameCount = 16;
-    for (int findex = 0; findex < frameCount; findex++) {
-      var f = new Frame(palette);
-      for (int y = 0; y < HEIGHT; y++) {
-        for (int x = findex; x < WIDTH; x += frameCount) {
-          f.set(x, y, 5);
-        }
-      }
-      m.frames.add(f);
-    }
-    return m;
-  }
+  int get length => _frames.length;
+
+  Frame operator[](int i) => _frames[i];
+
+  Iterable<Frame> get frames => _frames.toList(growable: false);
 }
 
 class Frame {
