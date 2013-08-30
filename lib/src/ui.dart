@@ -24,9 +24,13 @@ void onLoad(Player player, Brush brush, util.Text status) {
     }
   });
 
-  for (ButtonElement elt in queryAll('.share')) {
-    elt.onClick.listen((e) => handleShare(player, elt, status));
-  }
+  player.movie.onChange.first.then((e) {
+    print("showing share");
+    for (ButtonElement elt in queryAll('.share')) {
+      elt.onClick.listen((e) => handleShare(player, elt, status));
+      elt.disabled = false;
+    }
+  });
 
   for (CanvasElement elt in queryAll('.strip')) {
     bool vertical = elt.attributes["data-vertical"] == "true";
