@@ -307,7 +307,7 @@ class MovieView {
     _resize();
     _watch(player.frameStack);
     if (_damage != null) {
-      _renderBlended(ALL);
+      _renderBlended(_damage);
       _damage = null;
     }
     if (player.playing) {
@@ -353,18 +353,18 @@ class MovieView {
   }
 
   void _renderBlended(Rect clip) {
-      var c = elt.context2D;
-      c.imageSmoothingEnabled = false;
+    var c = elt.context2D;
+    if (_frame.frontAlpha != 1) {
+      c.fillStyle = "#000";
+      c.fillRect(clip.left * size.pixelsize, clip.top * size.pixelsize, clip.width * size.pixelsize, clip.height * size.pixelsize);
+      c.globalAlpha = _frame.backBrightness;
+      _frame.back.render(c, clip, size.pixelsize);
+      c.globalAlpha = _frame.frontAlpha;
+    }
+    _frame.front.render(c, clip, size.pixelsize);
+    if (_frame.frontAlpha != 1) {
       c.globalAlpha = 1;
-      if (_frame.frontAlpha != 1) {
-        c.fillStyle = "#000";
-        c.fillRect(clip.left, clip.top, clip.width, clip.height);
-        c.globalAlpha = 0.5;
-        _frame.back.render(c, clip, size.pixelsize);
-        c.globalAlpha = _frame.frontAlpha;
-      }
-      _frame.front.render(c, clip, size.pixelsize);
-      c.globalAlpha = 1;
+    }
   }
 }
 

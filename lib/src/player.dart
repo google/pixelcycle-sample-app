@@ -112,8 +112,9 @@ class Player {
 
     int other = (fraction < 0.5 ? (current - 1) : (current + 1)) % movie.frames.length;
     num edgeDist = 0.5 - (fraction - 0.5).abs();
-    num alpha = (0.5 + edgeDist * 2).clamp(0, 1);
-    return new FrameStack(movie.frames[other], movie.frames[current], alpha);
+    num backBrightness = (0.9 - edgeDist * 2).clamp(0, 1);
+    num frontAlpha = (0.7 + edgeDist).clamp(0, 1);
+    return new FrameStack(movie.frames[other], backBrightness, movie.frames[current], frontAlpha);
   }
 
   /// Serializes the state of the player.
@@ -130,17 +131,18 @@ class Player {
 
 class FrameStack {
   final Frame back;
+  final num backBrightness;
   final Frame front;
   final num frontAlpha;
 
-  FrameStack(this.back, this.front, this.frontAlpha);
+  FrameStack(this.back, this.backBrightness, this.front, this.frontAlpha);
 
   bool operator==(FrameStack other) {
-    return back==other.back && front==other.front && frontAlpha == other.frontAlpha;
+    return back==other.back && front==other.front && backBrightness == other.backBrightness && frontAlpha == other.frontAlpha;
   }
 
   int get hashCode {
-    return front.hashCode ^ back.hashCode ^ frontAlpha.hashCode;
+    return front.hashCode ^ back.hashCode ^ backBrightness.hashCode;
   }
 }
 

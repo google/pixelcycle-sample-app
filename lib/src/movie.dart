@@ -108,8 +108,8 @@ class Frame {
   // Draws the pixels within clip to the given context.
   // (The clip is measured in grid coordinates.)
   void render(CanvasRenderingContext2D c, Rect clip, num pixelsize) {
-    //Rect expanded = new Rect(clip.left - 0.5, clip.top - 0.5, clip.width + 1, clip.height + 1).intersection(ALL);
-    c.drawImageToRect(elt, scaleRect(clip, pixelsize), sourceRect: scaleRect(clip, PIXELSIZE));
+    Rect expanded = new Rect(clip.left - 0.5, clip.top - 0.5, clip.width + 1, clip.height + 1).intersection(ALL);
+    c.drawImageToRect(elt, scaleRect(expanded, pixelsize), sourceRect: scaleRect(expanded, PIXELSIZE));
   }
 
   void renderAt(CanvasRenderingContext2D c, int x, int y, num pixelsize) {
