@@ -79,19 +79,13 @@ class Frame {
     }
   }
 
-  void set(int x, int y, int colorIndex) {
-    assert(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT);
-    int index = x + y * WIDTH;
-    if (pixels[index] == colorIndex) {
-      return;
+  PixelChange set(int x, int y, int colorIndex) {
+    var change = new PixelChange(this, x, y, colorIndex);
+    if (change.before == change.after) {
+      return null;
     }
-    pixels[index] = colorIndex;
-    var c = elt.context2D;
-    c.fillStyle = palette[colorIndex];
-    c.fillRect(x * PIXELSIZE, y * PIXELSIZE, PIXELSIZE, PIXELSIZE);
-    if (_onChange.hasListener) {
-      _onChange.add(new Rect(x, y, 1, 1));
-    }
+    change.apply();
+    return change;
   }
 
   // Draws the pixels within clip to the given context.
@@ -103,6 +97,41 @@ class Frame {
 
   void renderAt(CanvasRenderingContext2D c, int x, int y, num pixelsize) {
     c.drawImageToRect(elt, new Rect(x, y, WIDTH * pixelsize, HEIGHT * pixelsize), sourceRect: scaleRect(ALL, PIXELSIZE));
+  }
+}
+
+class PixelChange {
+  final Frame frame;
+  final int x;
+  final int y;
+  final int index;
+  final int before;
+  final int after;
+
+  PixelChange.raw(this.frame, this.x, this.y, this.index, this.before, this.after);
+
+  factory PixelChange(Frame frame, int x, int y, int colorIndex) {
+    assert(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT);
+    int index = x + y * WIDTH;
+    return new PixelChange.raw(frame, x, y, index, frame.pixels[index], colorIndex);
+  }
+
+  void apply() {
+    _paint(after);
+  }
+
+  void undo() {
+    _paint(before);
+  }
+
+  void _paint(int colorIndex) {
+    frame.pixels[index] = colorIndex;
+    var c = frame.elt.context2D;
+    c.fillStyle = frame.palette[colorIndex];
+    c.fillRect(x * PIXELSIZE, y * PIXELSIZE, PIXELSIZE, PIXELSIZE);
+    if (frame._onChange.hasListener) {
+      frame._onChange.add(new Rect(x, y, 1, 1));
+    }
   }
 }
 

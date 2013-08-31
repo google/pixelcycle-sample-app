@@ -2,6 +2,7 @@ import 'dart:html';
 import 'dart:async' show Future, Completer;
 import 'dart:json' as json;
 
+import 'package:pixelcycle2/src/editor.dart' show Editor;
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
 import 'package:pixelcycle2/src/movie.dart' show Movie, Frame, WIDTH, HEIGHT;
 import 'package:pixelcycle2/src/player.dart' show Player;
@@ -21,7 +22,7 @@ void main() {
     var brush = new Brush(palette);
     brush.selection = 26;
 
-    ui.onLoad(player, brush, status);
+    ui.onLoad(player, new Editor(), brush, status);
     player.playing = true;
 
     if (window.sessionStorage["loadMessage"] != null) {

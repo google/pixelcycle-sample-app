@@ -3,13 +3,14 @@ library ui;
 import 'dart:async' show StreamSubscription;
 import 'dart:html';
 
+import 'package:pixelcycle2/src/editor.dart' show Editor;
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame;
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
 import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag, FrameStack;
 import 'package:pixelcycle2/src/server.dart' as server;
 import 'package:pixelcycle2/src/util.dart' as util;
 
-void onLoad(Player player, Brush brush, util.Text status) {
+void onLoad(Player player, Editor editor, Brush brush, util.Text status) {
 
   List<HtmlElement> statusElts = queryAll('.status');
   status.onChange.listen((value) {
@@ -25,10 +26,20 @@ void onLoad(Player player, Brush brush, util.Text status) {
   });
 
   player.movie.onChange.first.then((e) {
-    print("showing share");
     for (ButtonElement elt in queryAll('.share')) {
       elt.onClick.listen((e) => handleShare(player, elt, status));
       elt.disabled = false;
+    }
+  });
+
+  var undoButtons = queryAll('.undo');
+  for (ButtonElement elt in undoButtons) {
+    elt.onClick.listen((e) => editor.undo());
+  }
+
+  editor.canUndoChanged.listen((newValue) {
+    for (ButtonElement elt in undoButtons) {
+      elt.disabled = !newValue;
     }
   });
 
@@ -38,7 +49,7 @@ void onLoad(Player player, Brush brush, util.Text status) {
   }
 
   for (CanvasElement elt in queryAll('.movie')) {
-    new MovieView(player, brush, elt);
+    new MovieView(player, editor, brush, elt);
   }
 
   for (TableElement elt in queryAll('.palette')) {
@@ -235,6 +246,7 @@ class StripView {
 /// often.
 class MovieView {
   final Player player;
+  final Editor editor;
   final Brush brush;
   final CanvasElement elt;
   Size size;
@@ -246,7 +258,7 @@ class MovieView {
 
   StreamSubscription _moveSub;
 
-  MovieView(this.player, this.brush, this.elt) {
+  MovieView(this.player, this.editor, this.brush, this.elt) {
     _setSize(LARGE);
 
     player.onChange.listen((e) {
@@ -271,6 +283,7 @@ class MovieView {
     elt.onTouchEnd.listen((TouchEvent e) {
       if (e.touches.isEmpty) {
         _onFrameChange = () {};
+        editor.endStroke();
       } else {
         _onFrameChange = () => _fingerPaint(e);
       }
@@ -284,7 +297,7 @@ class MovieView {
   void _mousePaint(MouseEvent e) {
     int x = (e.offset.x / size.pixelsize).toInt();
     int y = (e.offset.y / size.pixelsize).toInt();
-    _frame.front.set(x, y, brush.selection);
+    editor.set(_frame.front, x, y, brush.selection);
     // Repeat on each frame if the user is holding down the mouse button
     _onFrameChange = () => _mousePaint(e);
   }
@@ -295,6 +308,7 @@ class MovieView {
     }
     _moveSub = null;
     _onFrameChange = () {};
+    editor.endStroke();
   }
 
   void _fingerPaint(TouchEvent e) {
@@ -304,7 +318,7 @@ class MovieView {
       int canvasY = t.page.y - elt.documentOffset.y;
       int x = (canvasX / size.pixelsize).toInt();
       int y = (canvasY / size.pixelsize).toInt();
-      _frame.front.set(x, y, brush.selection);
+      editor.set(_frame.front, x, y, brush.selection);
     }
     // Repeat on each frame if the user is pressing the canvas
     _onFrameChange = () => _fingerPaint(e);
