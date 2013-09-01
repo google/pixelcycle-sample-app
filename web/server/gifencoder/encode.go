@@ -4,6 +4,7 @@ import (
 	"compress/lzw"
 	"encoding/binary"
 	"fmt"
+	"image"
 	"image/gif"
 	"io"
 )
@@ -52,35 +53,48 @@ func EncodeAll(w io.Writer, m gif.GIF) error {
 	paddingColors := (1 << colorBits) - len(img.Palette)
 	data = append(data, make([]byte, paddingColors*3))
 
+	if err := writeData(w, data); err != nil {
+		return err
+	}
+
+	if err := encodeImageBlock(w, img); err != nil {
+		return err
+	}
+
+	// add trailer
+	_, err := w.Write([]byte{byte(0x3b)})
+	return err
+}
+
+func encodeImageBlock(w io.Writer, img *image.Paletted) error {
+
 	// start image
 
-	bounds := img.Bounds()
-	data = append(data,
-		byte(0x2C),
-		uint16(bounds.Min.X), uint16(bounds.Min.Y), uint16(bounds.Dx()), uint16(bounds.Dy()),
-		byte(0),
-	)
-
-	// start compression
-
+	colorBits := bits(len(img.Palette))
 	litWidth := int(colorBits)
 	if litWidth < 2 {
 		litWidth = 2
 	}
 
-	data = append(data, byte(litWidth))
-
-	for _, v := range data {
-		err := binary.Write(w, binary.LittleEndian, v)
-		if err != nil {
-			return err
-		}
+	bounds := img.Bounds()
+	data := []interface{}{
+		byte(0x2C),
+		uint16(bounds.Min.X), uint16(bounds.Min.Y), uint16(bounds.Dx()), uint16(bounds.Dy()),
+		byte(0),
+		byte(litWidth),
 	}
+
+	if err := writeData(w, data); err != nil {
+		return err
+	}
+
+	// start compression
 
 	blocks := &blockWriter{w: w}
 	compress := lzw.NewWriter(blocks, lzw.LSB, litWidth)
 
 	// write each scan line (might not be contiguous)
+
 	startX := img.Rect.Min.X
 	stopX := img.Rect.Max.X
 	stopY := img.Rect.Max.Y
@@ -96,13 +110,17 @@ func EncodeAll(w io.Writer, m gif.GIF) error {
 		return err
 	}
 
-	if err := blocks.Close(); err != nil {
-		return err
-	}
+	return blocks.Close()
+}
 
-	// add trailer
-	_, err := w.Write([]byte{byte(0x3b)})
-	return err
+func writeData(w io.Writer, data []interface{}) error {
+	for _, v := range data {
+		err := binary.Write(w, binary.LittleEndian, v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Bits returns the number of bits needed to represent numbers from 0 to n-1.
