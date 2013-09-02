@@ -1,90 +1,161 @@
 package gifencoder
 
 import (
+	"bytes"
 	"compress/lzw"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/gif"
 	"io"
 )
 
+// EncodeAll writes all the frames in a gif.GIF struct to a GIF file.
+// If there is more than one frame, it will be an animated GIF.
 func EncodeAll(w io.Writer, m gif.GIF) error {
-	if len(m.Image) != 1 {
-		panic("not implemented")
+
+	if len(m.Image) < 1 {
+		return errors.New("creating a gif with zero images isn't implemented")
 	}
 
-	img := m.Image[0]
+	// Determine a logical size that contains all images.
+	var sizeX, sizeY int
+	for _, img := range m.Image {
+		if img.Rect.Max.X > sizeX {
+			sizeX = img.Rect.Max.X
+		}
+		if img.Rect.Max.Y > sizeY {
+			sizeY = img.Rect.Max.Y
+		}
+	}
 
-	// add header
+	if sizeX >= (1<<16) || sizeY >= (1<<16) {
+		return fmt.Errorf("logical size too large: (%v,%v)", sizeX, sizeY)
+	}
 
-	var data = []interface{}{
+	// Arbitrarily make the first image's palette global.
+	globalPalette, colorBits, err := encodePalette(w, m.Image[0].Palette)
+	if err != nil {
+		return err
+	}
+
+	// header
+	if err := writeData(w,
 		[]byte("GIF89a"),
-	}
-
-	logicalSize := img.Rect.Max
-	if logicalSize.X >= (1<<16) || logicalSize.Y >= (1<<16) {
-		return fmt.Errorf("logical size too large: %v", logicalSize)
-	}
-
-	data = append(data,
-		uint16(logicalSize.X),
-		uint16(logicalSize.Y),
-	)
-
-	colorBits := bits(len(img.Palette))
-	if colorBits < 1 {
-		colorBits = 1
-	} else if colorBits > 8 {
-		return fmt.Errorf("palette too large: %v", len(img.Palette))
-	}
-
-	data = append(data,
-		byte(0xF0|colorBits-1), byte(0), byte(0))
-
-	// add palette; ignoring alpha
-
-	for _, c := range img.Palette {
-		r, g, b, _ := c.RGBA()
-		data = append(data,
-			byte(r>>8), byte(g>>8), byte(b>>8),
-		)
-	}
-	paddingColors := (1 << colorBits) - len(img.Palette)
-	data = append(data, make([]byte, paddingColors*3))
-
-	if err := writeData(w, data); err != nil {
+		uint16(sizeX), uint16(sizeY),
+		byte(0xF0|colorBits-1),
+		byte(0), byte(0),
+		globalPalette,
+	); err != nil {
 		return err
 	}
 
-	if err := encodeImageBlock(w, img); err != nil {
-		return err
+	// only write loop count for animations
+	if len(m.Image) > 1 {
+		if err := writeData(w,
+			[]byte{0x21, 0xff, 0x0b},
+			[]byte("NETSCAPE2.0"),
+			[]byte{3, 1},
+			uint16(m.LoopCount),
+			byte(0),
+		); err != nil {
+			return err
+		}
+	}
+
+	for i, img := range m.Image {
+		// write delay block
+		if i < len(m.Delay) && m.Delay[i] != 0 {
+			err = writeData(w,
+				[]byte{0x21, 0xf9, 4, 0},
+				uint16(m.Delay[i]),
+				[]byte{0, 0},
+			)
+			if err != nil {
+				return err
+			}
+		}
+
+		localPalette, _, err := encodePalette(w, img.Palette)
+		if err != nil {
+			return err
+		}
+
+		if !bytes.Equal(globalPalette, localPalette) {
+			return errors.New("different palettes not implemented")
+		}
+
+		if err := encodeImageBlock(w, img); err != nil {
+			return err
+		}
 	}
 
 	// add trailer
-	_, err := w.Write([]byte{byte(0x3b)})
+	_, err = w.Write([]byte{byte(0x3b)})
 	return err
+}
+
+// EncodePalette converts an image palette to a byte array using
+// three bytes per color. (It ignores the alpha channel.)
+func encodePalette(w io.Writer, palette color.Palette) ([]byte, uint, error) {
+
+	bits := paletteBits(palette)
+	if bits > 8 {
+		return nil, 0, fmt.Errorf("palette too large: %v", len(palette))
+	}
+
+	var buf bytes.Buffer
+
+	for _, c := range palette {
+		r, g, b, _ := c.RGBA()
+		buf.WriteByte(byte(r >> 8))
+		buf.WriteByte(byte(g >> 8))
+		buf.WriteByte(byte(b >> 8))
+	}
+	paddingColors := (1 << bits) - len(palette)
+	buf.Write(make([]byte, paddingColors*3))
+
+	return buf.Bytes(), bits, nil
+}
+
+func paletteBits(palette color.Palette) uint {
+	b := log2(len(palette))
+	if b < 1 {
+		return 1
+	}
+	return b
+}
+
+// Log2 returns the number of bits needed to represent numbers from 0 to n-1.
+func log2(n int) uint {
+	n--
+	count := uint(0)
+	for n > 0 {
+		count++
+		n = n >> 1
+	}
+	return count
 }
 
 func encodeImageBlock(w io.Writer, img *image.Paletted) error {
 
 	// start image
 
-	colorBits := bits(len(img.Palette))
-	litWidth := int(colorBits)
+	litWidth := int(paletteBits(img.Palette))
 	if litWidth < 2 {
 		litWidth = 2
 	}
 
 	bounds := img.Bounds()
-	data := []interface{}{
+
+	if err := writeData(w,
 		byte(0x2C),
 		uint16(bounds.Min.X), uint16(bounds.Min.Y), uint16(bounds.Dx()), uint16(bounds.Dy()),
 		byte(0),
 		byte(litWidth),
-	}
-
-	if err := writeData(w, data); err != nil {
+	); err != nil {
 		return err
 	}
 
@@ -113,7 +184,7 @@ func encodeImageBlock(w io.Writer, img *image.Paletted) error {
 	return blocks.Close()
 }
 
-func writeData(w io.Writer, data []interface{}) error {
+func writeData(w io.Writer, data ...interface{}) error {
 	for _, v := range data {
 		err := binary.Write(w, binary.LittleEndian, v)
 		if err != nil {
@@ -121,17 +192,6 @@ func writeData(w io.Writer, data []interface{}) error {
 		}
 	}
 	return nil
-}
-
-// Bits returns the number of bits needed to represent numbers from 0 to n-1.
-func bits(n int) uint {
-	n--
-	count := uint(0)
-	for n > 0 {
-		count++
-		n = n >> 1
-	}
-	return count
 }
 
 // BlockWriter converts a stream of bytes into blocks where each block starts with a one-byte
