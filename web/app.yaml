@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-preview
+version: draft-compress
 runtime: go
 api_version: go1
 

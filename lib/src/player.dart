@@ -2,7 +2,6 @@ library player;
 
 import 'dart:html';
 import 'dart:async' show Stream, StreamController, StreamSubscription;
-import 'dart:json' as json;
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
 
@@ -115,19 +114,6 @@ class Player {
     num backBrightness = (0.9 - edgeDist * 2).clamp(0, 1);
     num frontAlpha = (0.7 + edgeDist).clamp(0, 1);
     return new FrameStack(movie[other], backBrightness, movie[current], frontAlpha);
-  }
-
-  /// Serializes the state of the player.
-  String serialize() {
-    var data = {
-      'Version': 1,
-      'Speed': speed,
-      'Width': WIDTH,
-      'Height': HEIGHT,
-      'Palette': movie.palette.toInts(),
-      'Frames': movie.frames.map((f) => json.stringify(f.pixels)).toList(growable: false),
-    };
-    return json.stringify(data);
   }
 }
 

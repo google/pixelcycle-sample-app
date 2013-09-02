@@ -48,7 +48,8 @@ func loadMovie(w http.ResponseWriter, r *http.Request, id int64) (out *movie, ok
 
 	// normalize
 
-	if m.Palette == nil {
+	if len(m.Palette) == 0 {
+		c.Debugf("using standard palette")
 		m.Palette = standardPalette
 	}
 

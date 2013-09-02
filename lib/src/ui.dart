@@ -85,8 +85,7 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
 void handleShare(Player player, ButtonElement elt, util.Text status) {
   elt.disabled = true;
   status.value = "Saving...";
-  String data = player.serialize();
-  server.save(data).then((String url) {
+  server.save(player).then((String url) {
     status.value = "Reloading...";
     window.sessionStorage["loadMessage"] = "Saved. You can share this page now.";
     window.location.assign(url);
