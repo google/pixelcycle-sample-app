@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -8,13 +9,24 @@ import (
 	"appengine/datastore"
 )
 
+const standardWidth = 60
+const standardHeight = 36
+const standardFrames = 8
+
+// using ascii non-control chars for version 2 pixels
+const startColorChar = 33
+const stopColorChar = 127
+const maxColors = stopColorChar - startColorChar
+
 type movie struct {
 	Version int
 	Speed   float64 // frames per second
 	Width   int
 	Height  int
 	Palette []byte
-	Frames  []string `datastore:",noindex"`
+	// in version 1, frames are JSON arrays of ints
+	// in version 2, pixels are ascii non-control characters; subtract startColorChar for palette index
+	Frames []string `datastore:",noindex"`
 }
 
 func parseIdParam(w http.ResponseWriter, r *http.Request) (id int64, ok bool) {
@@ -60,6 +72,19 @@ func loadMovie(w http.ResponseWriter, r *http.Request, id int64) (out *movie, ok
 	} else if m.Speed == 0 {
 		// choose an arbitrary default
 		m.Speed = 10
+	}
+
+	if m.Version == 1 {
+		// convert frame to version 2
+		for i, f := range m.Frames {
+			var pix []byte
+			json.Unmarshal([]byte(f), &pix)
+			for i := range pix {
+				pix[i] = pix[i] + 33
+			}
+			m.Frames[i] = string(pix)
+		}
+		m.Version = 2
 	}
 
 	return &m, true

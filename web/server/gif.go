@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"encoding/json"
 	"image"
 	"image/color"
 	"image/gif"
@@ -63,9 +62,7 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 	delay := int(100 / m.Speed)
 
 	anim := gif.GIF{LoopCount: 0}
-	for _, data := range m.Frames {
-		var pix []byte
-		json.Unmarshal([]byte(data), &pix)
+	for _, pix := range m.Frames {
 
 		bounds := image.Rect(0, 0, m.Width*pixelsize, m.Height*pixelsize)
 		scaled := make([]byte, bounds.Max.X*bounds.Max.Y)
@@ -73,7 +70,7 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 		for y := 0; y < m.Height; y++ {
 			for i := 0; i < pixelsize; i++ {
 				for x := 0; x < m.Width; x++ {
-					pixel := pix[x+y*m.Width]
+					pixel := pix[x+y*m.Width] - startColorChar
 					for j := 0; j < pixelsize; j++ {
 						scaled[idx] = pixel
 						idx++

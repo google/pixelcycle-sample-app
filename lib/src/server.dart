@@ -5,8 +5,8 @@ import 'dart:html' show HttpRequest, HttpRequestProgressEvent;
 import 'dart:json' as json;
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, Movie, Frame;
+import 'package:pixelcycle2/src/palette.dart' show Palette;
 import 'package:pixelcycle2/src/player.dart' show Player;
-
 
 /// Saves the current state and returns a new URL that can be used to load it.
 Future<String> save(Player player) {
@@ -18,11 +18,11 @@ String stringify(Player player) {
   var palette = player.movie.palette.toInts();
   bool isStandard = equalLists(palette, standardPalette);
   var data = {
-              'Version': 1,
+              'Version': 2,
               'Speed': player.speed,
               'Width': WIDTH,
               'Height': HEIGHT,
-              'Frames': player.movie.frames.map((f) => json.stringify(f.pixels)).toList(growable: false),
+              'Frames': player.movie.frames.map((f) => stringifyFrame(f)).toList(growable: false),
   };
   if (!isStandard) {
     data['Palette'] = palette;
@@ -40,6 +40,18 @@ bool equalLists(List a, List b) {
     }
   }
   return true;
+}
+
+const baseColorChar = 33;
+
+/// Encodes frame using one character per pixel, starting from ascii 33.
+String stringifyFrame(Frame f) {
+  return new String.fromCharCodes(f.pixels.map((p) => p + baseColorChar));
+}
+
+Frame parseFrame(Palette palette, String frameString) {
+  List<int> pixels = frameString.codeUnits.map((c) => c - baseColorChar).toList(growable: false);
+  return new Frame.fromPixels(palette, pixels);
 }
 
 List<int> standardPalette = [
@@ -65,8 +77,31 @@ List<int> standardPalette = [
 ];
 
 /// Loads the player state with the given id.
-Future<String> load(String id) {
-  return HttpRequest.getString("/_load?id=${id}");
+Future<Player> load(String id) {
+  var c = new Completer<Player>();
+  HttpRequest.getString("/_load?id=${id}")
+      .then((data) => c.complete(parse(data)));
+  return c.future;
+}
+
+Player parse(String dataString) {
+  var palette = new Palette.standard();
+
+  Map data = json.parse(dataString);
+  if (data["Version"] != 2) {
+    throw "unexpected version: ${data["Version"]}";
+  }
+  if (data["Width"] != WIDTH || data["Height"] != HEIGHT) {
+    throw "unexpected bounds: (${data["Width"]}, ${data["Height"]})";
+  }
+
+  var movie = new Movie(palette);
+  for (String frameString in data["Frames"]) {
+    movie.add(parseFrame(palette, frameString));
+  }
+  var player = new Player(movie);
+  player.speed = data["Speed"];
+  return player;
 }
 
 /// Posts a string to the server and returns the response body as a string.

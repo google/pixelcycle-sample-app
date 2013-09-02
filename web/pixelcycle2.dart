@@ -29,8 +29,7 @@ void main() {
   }
   ui.previewStatus(status);
 
-  var palette = new Palette.standard();
-  loadPlayer(palette).then((Player player) {
+  loadPlayer().then((Player player) {
     print("player loaded");
 
     if (skipPreview) {
@@ -51,7 +50,7 @@ void main() {
   }).then((Player player) {
     print("starting editor");
 
-    var brush = new Brush(palette);
+    var brush = new Brush(player.movie.palette);
     brush.selection = 26;
 
     ui.startEditor(player, new Editor(), brush, status);
@@ -66,37 +65,15 @@ void main() {
   });
 }
 
-Future<Player> loadPlayer(Palette palette) {
+Future<Player> loadPlayer() {
 
   var match = savedMoviePath.firstMatch(window.location.pathname);
-  var player;
   if (match != null) {
-    var c = new Completer();
-    server.load(match.group(1)).then((String data) {
-      print("got data");
-      c.complete(deserializePlayer(palette, data));
-    });
-    return c.future;
+    return server.load(match.group(1));
   }
 
-  var movie = new Movie.blank(palette, 8);
-  player = new Player(movie);
+  var movie = new Movie.blank(new Palette.standard(), 8);
+  var player = new Player(movie);
   player.speed = 10;
   return new Future.value(player);
-}
-
-Player deserializePlayer(Palette palette, String dataString) {
-  Map data = json.parse(dataString);
-  assert (data["Version" == 1]);
-  assert (data["Width"] == WIDTH && data["Height"] == HEIGHT);
-
-  var movie = new Movie(palette);
-  for (String frameString in data["Frames"]) {
-    List<int> pixels = json.parse(frameString);
-    Frame f = new Frame.fromPixels(palette, pixels);
-    movie.add(f);
-  }
-  var player = new Player(movie);
-  player.speed = data["Speed"];
-  return player;
 }
