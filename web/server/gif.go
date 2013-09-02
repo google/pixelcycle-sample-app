@@ -38,6 +38,7 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(m.Palette); i += 3 {
 		palette = append(palette, color.RGBA{m.Palette[i], m.Palette[i+1], m.Palette[i+2], 255})
 	}
+
 	delay := int(100 / m.Speed)
 
 	anim := gif.GIF{LoopCount: 0}

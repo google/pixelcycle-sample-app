@@ -62,9 +62,30 @@ func loadMovie(w http.ResponseWriter, r *http.Request) (out *movie, id int64, ok
 		return nil, 0, false
 	}
 
+	// normalize
+
 	if m.Palette == nil {
 		m.Palette = standardPalette
 	}
 
+	if m.Speed < 0 {
+		// GIF format doesn't handle negative speeds
+		m.Speed = -m.Speed
+		reverse(m.Frames)
+	} else if m.Speed == 0 {
+		// choose an arbitrary default
+		m.Speed = 10
+	}
+
 	return &m, id, true
+}
+
+func reverse(l []string) {
+	i := 0
+	j := len(l) - 1
+	for i < j {
+		l[j], l[i] = l[i], l[j]
+		i++
+		j--
+	}
 }
