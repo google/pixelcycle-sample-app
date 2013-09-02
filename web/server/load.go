@@ -3,10 +3,8 @@ package server
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"appengine"
-	"appengine/datastore"
 )
 
 func init() {
@@ -23,37 +21,21 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idString := r.FormValue("id")
-	id, err := strconv.ParseInt(idString, 10, 64)
-	if err != nil {
-		c.Debugf("can't parse id: %#v", idString)
-		http.Error(w, "can't parse id", http.StatusBadRequest)
-		return
-	}
-
-	k := datastore.NewKey(c, "Movie", "", id, nil)
-	var m movie
-
-	c.Debugf("calling Get")
-	err = datastore.Get(c, k, &m)
-	c.Debugf("Get returned error=%v", err)
-
-	if err != nil {
-		c.Errorf("can't load movie: %v", err)
-		http.Error(w, "can't load movie", http.StatusServiceUnavailable)
+	m, id, ok := loadMovie(w, r)
+	if !ok {
 		return
 	}
 
 	data, err := json.Marshal(&m)
 	if err != nil {
-		c.Debugf("can't marshal JSON: %v", err)
+		c.Errorf("can't marshal JSON for movie %v: %v", id, err)
 		http.Error(w, "can't encode movie", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Add("Content-Type", "text/json") // not correct but needed by Dart
+	w.Header().Add("Content-Type", "text/json") // not correct but "text/" is needed by Dart
 	_, err = w.Write(data)
 	if err != nil {
-		c.Errorf("can't write json to client: %v", err)
+		c.Debugf("can't write json to client: %v", err)
 	}
 }

@@ -12,6 +12,9 @@ handlers:
   static_files: pixelcycle2.html
   upload: pixelcycle2.html
 
+- url: /gif
+  script: _go_app
+
 - url: /(.*\.(css|js|js\.map))
   static_files: \1
   upload: (.*\.(css|js))

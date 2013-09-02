@@ -1,36 +1,41 @@
 library palette;
 
+import 'package:fixnum/fixnum.dart' show Int32;
 import 'dart:async' show Stream, StreamController, StreamSubscription;
 
 /// A Palette defines a mapping from small integers to colors.
 class Palette {
-  final List<String> colors;
+  final List<Color> colors;
 
   Palette(this.colors);
 
   factory Palette.standard() {
-    var colors = new List<String>();
+    List<Color> colors = new List<Color>();
 
-    colors.addAll(["#000000", "#333333", "#666666"]);
+    colors.addAll(hexColors(["#000000", "#333333", "#666666"]));
     colors.addAll(spectrum(0.5, 0.8));
 
-    colors.addAll(["#999999", "#cccccc", "#ffffff"]);
+    colors.addAll(hexColors(["#999999", "#cccccc", "#ffffff"]));
     colors.addAll(spectrum(1.0, 1.0));
 
-    colors.addAll(["#330000", "#333300", "#003300"]);
+    colors.addAll(hexColors(["#330000", "#333300", "#003300"]));
     colors.addAll(spectrum(1.0, 0.75));
 
-    colors.addAll(["#003333", "#000033", "#330033"]);
+    colors.addAll(hexColors(["#003333", "#000033", "#330033"]));
     colors.addAll(spectrum(1.0, 0.5));
 
     return new Palette(colors);
   }
 
   String operator[] (int index) {
-    return colors[index];
+    return colors[index].toRGB();
   }
 
   int get length => colors.length;
+
+  List<int> toInts() {
+    return colors.expand((c) => [c.r, c.g, c.b]).toList();
+  }
 }
 
 /// A Brush holds a selected color from the palette.
@@ -60,8 +65,8 @@ class Brush {
 }
 
 /// Creates a list of colors in a spectrum with constant saturation and value.
-List<String> spectrum(double s, double v) {
-  final result = new List<String>();
+List<Color> spectrum(double s, double v) {
+  final result = new List<Color>();
   // Space out colors in a 360 degree color wheel so they look distinct. (Fewer greens.)
   var hues = [
        // red to yellow
@@ -78,18 +83,32 @@ List<String> spectrum(double s, double v) {
        300, 330
    ];
   for (var h in hues) {
-    result.add(new Color.hsv(h/360.0, s, v).toString());
+    result.add(new Color.hsv(h/360.0, s, v));
   }
   return result;
 }
+
+List<Color> hexColors(List<String> l) => l.map((s) => new Color.hex(s));
 
 class Color {
   final int r;
   final int g;
   final int b;
+  String _rgbString;
 
   /// Each argument has range 0 to 255.
-  Color.rgb(this.r, this.g, this.b);
+  Color.rgb(this.r, this.g, this.b) {
+    _rgbString = "rgb(${r},${g},${b})";
+  }
+
+  factory Color.hex(String hex) {
+    assert(hex.length == 7);
+    assert(hex[0] == "#");
+    var r = Int32.parseHex(hex.substring(1, 3)).toInt();
+    var g = Int32.parseHex(hex.substring(3, 5)).toInt();
+    var b = Int32.parseHex(hex.substring(5, 7)).toInt();
+    return new Color.rgb(r, g, b);
+  }
 
   /// Calculates an rgb color from hue, saturation, and value. Each argument has range 0 to 1.
   factory Color.hsv(double h, double s, double v) {
@@ -137,7 +156,7 @@ class Color {
     throw new Exception("shouldn't get here");
   }
 
-  String toString() {
-    return "rgb(${r},${g},${b})";
+  String toRGB() {
+    return _rgbString;
   }
 }

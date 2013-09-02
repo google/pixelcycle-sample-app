@@ -119,13 +119,15 @@ class Player {
 
   /// Serializes the state of the player.
   String serialize() {
-    return json.stringify({
+    var data = {
       'Version': 1,
       'Speed': speed,
       'Width': WIDTH,
       'Height': HEIGHT,
+      'Palette': movie.palette.toInts(),
       'Frames': movie.frames.map((f) => json.stringify(f.pixels)).toList(growable: false),
-    });
+    };
+    return json.stringify(data);
   }
 }
 
