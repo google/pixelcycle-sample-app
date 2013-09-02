@@ -61,21 +61,23 @@ func loadMovie(w http.ResponseWriter, r *http.Request, id int64) (out *movie, ok
 	// normalize
 
 	if len(m.Palette) == 0 {
-		c.Debugf("using standard palette")
+		c.Debugf("use standard palette")
 		m.Palette = standardPalette
 	}
 
 	if m.Speed < 0 {
+		c.Debugf("normalize reversed speed")
 		// GIF format doesn't handle negative speeds
 		m.Speed = -m.Speed
 		reverse(m.Frames)
 	} else if m.Speed == 0 {
+		c.Debugf("set non-zero speed")
 		// choose an arbitrary default
 		m.Speed = 10
 	}
 
 	if m.Version == 1 {
-		// convert frame to version 2
+		c.Debugf("upgrade from version 1 to 2")
 		for i, f := range m.Frames {
 			var pix []byte
 			json.Unmarshal([]byte(f), &pix)
