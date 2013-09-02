@@ -258,7 +258,7 @@ func (b *blockWriter) Close() error {
 	b.buf[n+1] = 0 // terminate block stream
 
 	var n2 int
-	n2, b.err = b.w.Write(b.buf[0 : n+2])
+	n2, b.err = b.w.Write(b.buf[0 : int(n)+2])
 	if n2 < int(n)+2 && b.err == nil {
 		b.err = io.ErrShortWrite
 	}

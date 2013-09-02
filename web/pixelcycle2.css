@@ -20,6 +20,14 @@ tr {
   display: none;
 }
 
+.preview .status {
+  max-width: 340px;
+}
+
+#gif {
+  margin-bottom: 10px;
+}
+
 .status {
   background-color: #fefbed;
   padding: 5px 5px 5px 5px;
@@ -67,7 +75,7 @@ tr {
   display: inline-block;
 }
 
-.portrait .hidden {
+.hidden, .start-hidden {
   display: none;
 }
 

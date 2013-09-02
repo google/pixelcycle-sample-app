@@ -10,7 +10,28 @@ import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag, FrameStack;
 import 'package:pixelcycle2/src/server.dart' as server;
 import 'package:pixelcycle2/src/util.dart' as util;
 
-void onLoad(Player player, Editor editor, Brush brush, util.Text status) {
+void previewStatus(util.Text status) {
+  if (status.value != null) {
+    List<HtmlElement> statusElts = queryAll('.status');
+    for (HtmlElement elt in statusElts) {
+      elt.text = status.value;
+      elt.classes.remove("fade-hidden");
+    }
+  }
+}
+
+void hidePreview() {
+  for (var elt in queryAll(".preview")) {
+    elt.classes.add("hidden");
+  }
+  for (var elt in queryAll(".start-hidden")) {
+    elt.classes.remove("start-hidden");
+  }
+}
+
+
+void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
+  hidePreview();
 
   List<HtmlElement> statusElts = queryAll('.status');
   status.onChange.listen((value) {
@@ -67,7 +88,7 @@ void handleShare(Player player, ButtonElement elt, util.Text status) {
   String data = player.serialize();
   server.save(data).then((String url) {
     status.value = "Reloading...";
-    window.sessionStorage["loadMessage"] = "Saved. You can share this page.";
+    window.sessionStorage["loadMessage"] = "Saved. You can share this page now.";
     window.location.assign(url);
   }).catchError((e) {
     print("error: ${e}");

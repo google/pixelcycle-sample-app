@@ -5,12 +5,10 @@ api_version: go1
 
 handlers:
 - url: /
-  static_files: pixelcycle2.html
-  upload: pixelcycle2.html
+  script: _go_app
 
 - url: /m[0-9]+
-  static_files: pixelcycle2.html
-  upload: pixelcycle2.html
+  script: _go_app
 
 - url: /gif
   script: _go_app

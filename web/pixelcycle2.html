@@ -8,10 +8,18 @@
 </head>
 
 <body>
-  <div class="portrait">
+  <div class="preview">
+    <div class="status text-warning fade-hidden"></div>
+    <div>
+      <img id="gif" src="{{.}}" width="360" height="216">
+    </div>
+    <button id="edit" class="btn btn-primary" disabled>Edit</button>
+  </div>
+
+  <div class="portrait start-hidden">
     <div class="buttons">
       <h1 class="inline">PixelCycle</h1>
-      <button class="share btn btn-primary" disabled>Share</button>
+      <button class="share btn btn-primary" disabled>Save</button>
       <button class="undo btn" disabled>Undo</button>
       <span class="status text-warning fade-hidden"></span>
     </div>
@@ -21,19 +29,19 @@
     </canvas>
   </div>
 
-  <div class="landscape">
+  <div class="landscape start-hidden">
     <table><tr>
     <td><canvas class="strip" data-vertical="true"></canvas></td>
     <td><canvas class="movie"></canvas></td>
     <td>
-      <button class="share btn btn-primary" disabled>Share</button>
+      <button class="share btn btn-primary" disabled>Save</button>
       <button class="undo btn" disabled>Undo</button>
       <div class="status text-warning fade-hidden"></div>
     </td>
     </tr></table>
   </div>
 
-  <table class="palette"></table>
+  <table class="palette start-hidden"></table>
 
   <script src="pixelcycle2.dart.js" defer></script>
   <script>

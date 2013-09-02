@@ -15,20 +15,54 @@ RegExp savedMoviePath = new RegExp(r"^/m(\d+)$");
 void main() {
   print("main entered");
 
+  String gif = query("#gif").attributes["src"];
+  print("gif: ${gif}");
+  bool skipPreview = (gif == null) || (gif == "") || gif.startsWith("{{");
+  if (skipPreview) {
+    ui.hidePreview();
+  }
+
+  var status = new util.Text();
+  if (window.sessionStorage["loadMessage"] != null) {
+    status.value = window.sessionStorage["loadMessage"];
+    window.sessionStorage.remove("loadMessage");
+  }
+  ui.previewStatus(status);
+
   var palette = new Palette.standard();
   loadPlayer(palette).then((Player player) {
-    var status = new util.Text();
+    print("player loaded");
+
+    if (skipPreview) {
+      return new Future.value(player);
+    }
+
+    print("showing preview");
+    ButtonElement edit = query("#edit");
+
+    var c = new Completer();
+    edit.onClick.first.then((e) {
+      c.complete(player);
+    });
+
+    edit.disabled = false;
+
+    return c.future;
+  }).then((Player player) {
+    print("starting editor");
 
     var brush = new Brush(palette);
     brush.selection = 26;
 
-    ui.onLoad(player, new Editor(), brush, status);
+    ui.startEditor(player, new Editor(), brush, status);
+
+    if (!skipPreview) {
+      status.value = null;
+    }
+
     player.playing = true;
 
-    if (window.sessionStorage["loadMessage"] != null) {
-      status.value = window.sessionStorage["loadMessage"];
-      window.sessionStorage.remove("loadMessage");
-    }
+    print("started");
   });
 }
 
