@@ -21,7 +21,12 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m, id, ok := loadMovie(w, r)
+	id, ok := parseIdParam(w, r)
+	if !ok {
+		return
+	}
+
+	m, ok := loadMovie(w, r, id)
 	if !ok {
 		return
 	}

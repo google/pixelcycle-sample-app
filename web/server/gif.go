@@ -7,10 +7,12 @@ import (
 	"image/color"
 	"image/gif"
 	"net/http"
+	"strconv"
 
 	"server/gifencoder"
 
 	"appengine"
+	"appengine/memcache"
 )
 
 const pixelsize = 6
@@ -29,7 +31,26 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m, id, ok := loadMovie(w, r)
+	id, ok := parseIdParam(w, r)
+	if !ok {
+		return
+	}
+
+	// try memcache
+
+	memId := "gif-" + strconv.FormatInt(id, 10)
+	if item, err := memcache.Get(c, memId); err == nil {
+		w.Header().Set("Content-Type", "image/gif")
+		if _, err := w.Write(item.Value); err != nil {
+			c.Debugf("can't write HTTP response: %v", err)
+		}
+		return
+	}
+	c.Debugf("cache miss for %v", memId)
+
+	// try datastore
+
+	m, ok := loadMovie(w, r, id)
 	if !ok {
 		return
 	}
@@ -78,7 +99,17 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "can't create gif", http.StatusInternalServerError)
 	}
 
+	// populate memcache
+	item := &memcache.Item{
+		Key:   memId,
+		Value: buf.Bytes(),
+	}
+	if err := memcache.Set(c, item); err != nil {
+		c.Warningf("can't write %v to memcache: %v", memId, err)
+	}
+
 	w.Header().Set("Content-Type", "image/gif")
-	_, err := buf.WriteTo(w)
-	c.Debugf("can't write HTTP response: %v", err)
+	if _, err := buf.WriteTo(w); err != nil {
+		c.Debugf("can't write HTTP response: %v", err)
+	}
 }
