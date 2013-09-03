@@ -7,6 +7,7 @@ import (
 	"image/gif"
 	"net/http"
 	"strconv"
+	"time"
 
 	"server/gifencoder"
 
@@ -39,10 +40,7 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 
 	memId := "gif-" + strconv.FormatInt(id, 10)
 	if item, err := memcache.Get(c, memId); err == nil {
-		w.Header().Set("Content-Type", "image/gif")
-		if _, err := w.Write(item.Value); err != nil {
-			c.Debugf("can't write HTTP response: %v", err)
-		}
+		sendGif(c, w, item.Value)
 		return
 	}
 	c.Debugf("cache miss for %v", memId)
@@ -105,8 +103,15 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 		c.Warningf("can't write %v to memcache: %v", memId, err)
 	}
 
+	sendGif(c, w, buf.Bytes())
+}
+
+var maxAge = strconv.Itoa(int((24 * time.Hour).Seconds()))
+
+func sendGif(c appengine.Context, w http.ResponseWriter, bytes []byte) {
 	w.Header().Set("Content-Type", "image/gif")
-	if _, err := buf.WriteTo(w); err != nil {
+	w.Header().Set("Cache-Control", "max-age="+maxAge)
+	if _, err := w.Write(bytes); err != nil {
 		c.Debugf("can't write HTTP response: %v", err)
 	}
 }
