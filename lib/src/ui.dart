@@ -47,8 +47,8 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
   });
 
   player.movie.onChange.first.then((e) {
-    for (ButtonElement elt in queryAll('.share')) {
-      elt.onClick.listen((e) => handleShare(player, elt, status));
+    for (ButtonElement elt in queryAll('.save')) {
+      elt.onClick.listen((e) => handleSave(player, editor, elt, status));
       elt.disabled = false;
     }
   });
@@ -58,9 +58,15 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
     elt.onClick.listen((e) => editor.undo());
   }
 
-  editor.canUndoChanged.listen((newValue) {
+  editor.canUndoChanged.listen((canUndo) {
     for (ButtonElement elt in undoButtons) {
-      elt.disabled = !newValue;
+      elt.disabled = !canUndo;
+    }
+  });
+
+  window.onBeforeUnload.listen((BeforeUnloadEvent e) {
+    if (!editor.saved) {
+      e.returnValue = "You have unsaved edits.";
     }
   });
 
@@ -82,12 +88,13 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
   }
 }
 
-void handleShare(Player player, ButtonElement elt, util.Text status) {
+void handleSave(Player player, Editor editor, ButtonElement elt, util.Text status) {
   elt.disabled = true;
   status.value = "Saving...";
   server.save(player).then((String url) {
     status.value = "Reloading...";
     window.sessionStorage["loadMessage"] = "Saved. You can share this page now.";
+    editor.saved = true;
     window.location.assign(url);
   }).catchError((e) {
     print("error: ${e}");

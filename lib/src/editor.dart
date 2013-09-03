@@ -4,10 +4,12 @@ import 'dart:async' show Stream, StreamController;
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame, PixelChange;
 
+/// An Editor performs edits and remembers undo history.
 class Editor {
   final List<Stroke> strokes = new List<Stroke>();
   final StreamController<bool> _canUndoChanged = new StreamController<bool>();
   bool _canUndo;
+  bool saved = true;
   Stroke current;
 
   Stream<bool> get canUndoChanged => _canUndoChanged.stream;
@@ -23,6 +25,7 @@ class Editor {
     }
     current.pixels.add(change);
     canUndo = true;
+    saved = false;
   }
 
   void endStroke() {
@@ -33,8 +36,11 @@ class Editor {
     strokes.removeLast().undo();
     if (strokes.isEmpty) {
       canUndo = false;
+      saved = true;
     }
   }
+
+  bool get canUndo => _canUndo;
 
   void set canUndo(bool newValue) {
     if (_canUndo == newValue) {
