@@ -51,7 +51,7 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gif, err := makeGif(m)
+	gif, err := makeGif(c, m)
 	if err != nil {
 		c.Errorf("can't create gif for %v: %v", id, err)
 		http.Error(w, "can't create gif", http.StatusInternalServerError)
@@ -62,7 +62,7 @@ func gifHandler(w http.ResponseWriter, r *http.Request) {
 	sendGif(c, w, gif)
 }
 
-func makeGif(m *movie) ([]byte, error) {
+func makeGif(c appengine.Context, m *movie) ([]byte, error) {
 	palette := m.palette()
 
 	delay := int(100 / m.Speed)
@@ -97,8 +97,24 @@ func makeGif(m *movie) ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	err := gifencoder.EncodeAll(&buf, anim)
-	return buf.Bytes(), err
+	if err := gifencoder.EncodeAll(&buf, anim); err != nil {
+		c.Errorf("can't encode gif: %v", err)
+		return nil, err
+	}
+
+	if appengine.IsDevAppServer() {
+		// Validate gif by decoding it
+		r := bytes.NewReader(buf.Bytes())
+		size := r.Len()
+		if _, err := gif.DecodeAll(r); err != nil {
+			remaining := r.Len()
+			offset := size - remaining
+			c.Errorf("created an invalid gif: %v", err)
+			c.Errorf("error at offset %v (%x)", offset, offset)
+		}
+	}
+
+	return buf.Bytes(), nil
 }
 
 func gifMemId(id int64) string {

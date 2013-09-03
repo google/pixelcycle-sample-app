@@ -83,7 +83,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure we can create a gif
-	gif, err := makeGif(&m)
+	gif, err := makeGif(c, &m)
 	if err != nil {
 		c.Warningf("can't create gif: %v", err)
 		http.Error(w, "can't create gif", http.StatusInternalServerError)
