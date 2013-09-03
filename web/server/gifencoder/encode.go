@@ -114,6 +114,7 @@ func encodePalette(w io.Writer, palette color.Palette) ([]byte, uint, error) {
 		buf.WriteByte(byte(g >> 8))
 		buf.WriteByte(byte(b >> 8))
 	}
+
 	paddingColors := (1 << bits) - len(palette)
 	buf.Write(make([]byte, paddingColors*3))
 
@@ -247,21 +248,29 @@ func (b *blockWriter) Write(input []byte) (int, error) {
 	// postcondition: b.buf contains a block with n < 255, or b.err is set
 }
 
-// Close writes any buffered data to the Writer as a block with length < 255,
-// followed by a zero-length block to terminate.
+var alreadyClosed = errors.New("already closed")
+
+// Close writes any buffered data to the Writer as a block with length < 255
+// (if needed), followed by a zero-length block to terminate.
 func (b *blockWriter) Close() error {
 	if b.err != nil {
 		return b.err
 	}
 
-	n := b.buf[0]
-	b.buf[n+1] = 0 // terminate block stream
+	// precondition: b.buf[0] != 255
+	n := int(b.buf[0])
+	if n == 0 {
+		n++ // no short block needed, just terminate
+	} else {
+		b.buf[n+1] = 0 // append terminator
+		n += 2
+	}
 
-	var n2 int
-	n2, b.err = b.w.Write(b.buf[0 : int(n)+2])
-	if n2 < int(n)+2 && b.err == nil {
-		b.err = io.ErrShortWrite
+	n2, err := b.w.Write(b.buf[0:n])
+	if n2 < n && err == nil {
+		err = io.ErrShortWrite
 	}
 	b.buf[0] = 0
-	return b.err
+	b.err = alreadyClosed
+	return err
 }
