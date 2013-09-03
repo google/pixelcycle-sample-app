@@ -26,7 +26,7 @@ func editorHandler(w http.ResponseWriter, r *http.Request) {
 	groups := moviePattern.FindStringSubmatch(r.URL.Path)
 	if groups != nil {
 		id := groups[1]
-		imageUrl = "/gif?id=" + id
+		imageUrl = "/gif/" + id
 	}
 
 	w.Header().Set("Content-Type", "text/html")

@@ -1,9 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
+	"image/color"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"appengine"
 	"appengine/datastore"
@@ -29,10 +32,60 @@ type movie struct {
 	Frames []string `datastore:",noindex"`
 }
 
+func (m *movie) palette() color.Palette {
+	in := m.Palette
+	if len(in) == 0 {
+		in = standardPalette
+	}
+	out := color.Palette{}
+	for i := 0; i < len(in); i += 3 {
+		out = append(out, color.RGBA{in[i], in[i+1], in[i+2], 255})
+	}
+	return out
+}
+
+func (m *movie) normalize(c appengine.Context) {
+
+	if m.Palette != nil && bytes.Equal(m.Palette, standardPalette) {
+		m.Palette = nil
+	}
+
+	if m.Speed < 0 {
+		c.Debugf("normalize reversed speed")
+		// GIF format doesn't handle negative speeds
+		m.Speed = -m.Speed
+		reverse(m.Frames)
+	} else if m.Speed == 0 {
+		c.Debugf("set non-zero speed")
+		// choose an arbitrary default
+		m.Speed = 10
+	}
+
+	if m.Version == 1 {
+		c.Debugf("upgrade from version 1 to 2")
+		for i, f := range m.Frames {
+			var pix []byte
+			json.Unmarshal([]byte(f), &pix)
+			for i := range pix {
+				pix[i] = pix[i] + 33
+			}
+			m.Frames[i] = string(pix)
+		}
+		m.Version = 2
+	}
+}
+
 func parseIdParam(w http.ResponseWriter, r *http.Request) (id int64, ok bool) {
 	c := appengine.NewContext(r)
 
-	idString := r.FormValue("id")
+	path := r.URL.Path
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash == -1 {
+		sendError(c, w, "id not found in path")
+		return 0, false
+	}
+
+	idString := path[lastSlash+1:]
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		c.Debugf("can't parse id: %#v", idString)
@@ -60,35 +113,7 @@ func loadMovie(w http.ResponseWriter, r *http.Request, id int64) (out *movie, ok
 
 	// normalize
 
-	if len(m.Palette) == 0 {
-		c.Debugf("use standard palette")
-		m.Palette = standardPalette
-	}
-
-	if m.Speed < 0 {
-		c.Debugf("normalize reversed speed")
-		// GIF format doesn't handle negative speeds
-		m.Speed = -m.Speed
-		reverse(m.Frames)
-	} else if m.Speed == 0 {
-		c.Debugf("set non-zero speed")
-		// choose an arbitrary default
-		m.Speed = 10
-	}
-
-	if m.Version == 1 {
-		c.Debugf("upgrade from version 1 to 2")
-		for i, f := range m.Frames {
-			var pix []byte
-			json.Unmarshal([]byte(f), &pix)
-			for i := range pix {
-				pix[i] = pix[i] + 33
-			}
-			m.Frames[i] = string(pix)
-		}
-		m.Version = 2
-	}
-
+	m.normalize(c)
 	return &m, true
 }
 
@@ -100,26 +125,4 @@ func reverse(l []string) {
 		i++
 		j--
 	}
-}
-
-var standardPalette = []byte{
-	0, 0, 0, 51, 51, 51, 102, 102, 102, 204, 102, 102,
-	204, 127, 102, 204, 153, 102, 204, 178, 102, 204, 204, 102,
-	171, 204, 102, 102, 204, 102, 102, 204, 169, 102, 204, 204,
-	102, 170, 204, 102, 136, 204, 102, 102, 204, 135, 102, 204,
-	170, 102, 204, 204, 102, 204, 204, 102, 153, 153, 153, 153,
-	204, 204, 204, 255, 255, 255, 255, 0, 0, 255, 63, 0,
-	255, 127, 0, 255, 191, 0, 255, 255, 0, 171, 255, 0,
-	0, 255, 0, 0, 255, 169, 0, 255, 255, 0, 170, 255,
-	0, 85, 255, 0, 0, 255, 84, 0, 255, 170, 0, 255,
-	255, 0, 255, 255, 0, 128, 51, 0, 0, 51, 51, 0,
-	0, 51, 0, 191, 0, 0, 191, 47, 0, 191, 95, 0,
-	191, 143, 0, 191, 191, 0, 128, 191, 0, 0, 191, 0,
-	0, 191, 127, 0, 191, 191, 0, 128, 191, 0, 64, 191,
-	0, 0, 191, 63, 0, 191, 127, 0, 191, 191, 0, 191,
-	191, 0, 96, 0, 51, 51, 0, 0, 51, 51, 0, 51,
-	127, 0, 0, 127, 31, 0, 127, 63, 0, 127, 95, 0,
-	127, 127, 0, 85, 127, 0, 0, 127, 0, 0, 127, 84,
-	0, 127, 127, 0, 85, 127, 0, 42, 127, 0, 0, 127,
-	42, 0, 127, 85, 0, 127, 127, 0, 127, 127, 0, 64,
 }

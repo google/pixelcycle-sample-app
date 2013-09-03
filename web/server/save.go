@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	http.HandleFunc("/_share", shareHandler)
+	http.HandleFunc("/save", saveHandler)
 }
 
-func shareHandler(w http.ResponseWriter, r *http.Request) {
+func saveHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
 	if r.Method != "POST" {
@@ -77,6 +77,19 @@ func shareHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	m.normalize(c)
+	if m.Palette != nil {
+		c.Warningf("saving with custom palette")
+	}
+
+	// Make sure we can create a gif
+	gif, err := makeGif(&m)
+	if err != nil {
+		c.Warningf("can't create gif: %v", err)
+		http.Error(w, "can't create gif", http.StatusInternalServerError)
+		return
+	}
+
 	// Save
 
 	k := datastore.NewIncompleteKey(c, "Movie", nil)
@@ -89,6 +102,8 @@ func shareHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "can't save movie", http.StatusServiceUnavailable)
 		return
 	}
+
+	cacheGif(c, k.IntID(), gif)
 
 	fmt.Fprintf(w, "/m%v", k.IntID())
 }

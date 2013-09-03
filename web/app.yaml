@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-compress
+version: draft-cache
 runtime: go
 api_version: go1
 
@@ -10,7 +10,13 @@ handlers:
 - url: /m[0-9]+
   script: _go_app
 
-- url: /gif
+- url: /gif/[0-9]+
+  script: _go_app
+
+- url: /json/[0-9]+
+  script: _go_app
+
+- url: /save
   script: _go_app
 
 - url: /(.*\.(css|js|js\.map))
@@ -21,8 +27,3 @@ handlers:
   static_files: \1
   upload: /packages/pixelcycle2/src/.*\.dart
 
-- url: /_load
-  script: _go_app
-
-- url: /_share
-  script: _go_app

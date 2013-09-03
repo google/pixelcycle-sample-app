@@ -10,7 +10,7 @@ import 'package:pixelcycle2/src/player.dart' show Player;
 
 /// Saves the current state and returns a new URL that can be used to load it.
 Future<String> save(Player player) {
-  return post("/_share", stringify(player));
+  return post("/save", stringify(player));
 }
 
 /// Serializes the state of the player.
@@ -25,6 +25,8 @@ String stringify(Player player) {
               'Frames': player.movie.frames.map((f) => stringifyFrame(f)).toList(growable: false),
   };
   if (!isStandard) {
+    print("nonstandard palette: ${palette}");
+    print("   standard palette: ${standardPalette}");
     data['Palette'] = palette;
   }
   return json.stringify(data);
@@ -79,7 +81,7 @@ List<int> standardPalette = [
 /// Loads the player state with the given id.
 Future<Player> load(String id) {
   var c = new Completer<Player>();
-  HttpRequest.getString("/_load?id=${id}")
+  HttpRequest.getString("/json/${id}")
       .then((data) => c.complete(parse(data)));
   return c.future;
 }

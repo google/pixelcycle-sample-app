@@ -8,18 +8,11 @@ import (
 )
 
 func init() {
-	http.HandleFunc("/_load", loadHandler)
+	http.HandleFunc("/json/", loadHandler)
 }
 
 func loadHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-
-	if r.Method != "GET" {
-		c.Debugf("not a GET")
-		w.Header().Set("Allow", "GET")
-		http.Error(w, "not a GET", http.StatusMethodNotAllowed)
-		return
-	}
 
 	id, ok := parseIdParam(w, r)
 	if !ok {
