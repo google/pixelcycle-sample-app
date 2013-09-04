@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-confirm
+version: draft-frontpage
 runtime: go
 api_version: go1
 
@@ -19,9 +19,9 @@ handlers:
 - url: /save
   script: _go_app
 
-- url: /(.*\.(css|js|js\.map))
+- url: /(.*\.(css|js|js\.map|gif))
   static_files: \1
-  upload: (.*\.(css|js))
+  upload: (.*\.(css|js|js\.map|gif))
 
 - url: /(packages/pixelcycle2/src/.*\.dart)
   static_files: \1

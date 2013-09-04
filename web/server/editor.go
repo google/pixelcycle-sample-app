@@ -27,6 +27,8 @@ func editorHandler(w http.ResponseWriter, r *http.Request) {
 	if groups != nil {
 		id := groups[1]
 		imageUrl = "/gif/" + id
+	} else {
+		imageUrl = "/logo.gif"
 	}
 
 	w.Header().Set("Content-Type", "text/html")

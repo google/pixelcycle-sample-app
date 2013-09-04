@@ -16,8 +16,7 @@ void main() {
   print("main entered");
 
   String gif = query("#gif").attributes["src"];
-  print("gif: ${gif}");
-  bool skipPreview = (gif == null) || (gif == "") || gif.startsWith("{{");
+  bool skipPreview = gif.startsWith("{{");
   if (skipPreview) {
     ui.hidePreview();
   }
@@ -37,14 +36,14 @@ void main() {
     }
 
     print("showing preview");
-    ButtonElement edit = query("#edit");
+    ButtonElement paint = query("#paint");
 
     var c = new Completer();
-    edit.onClick.first.then((e) {
+    paint.onClick.first.then((e) {
       c.complete(player);
     });
 
-    edit.disabled = false;
+    paint.disabled = false;
 
     return c.future;
   }).then((Player player) {

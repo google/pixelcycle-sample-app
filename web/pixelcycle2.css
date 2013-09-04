@@ -16,6 +16,10 @@ tr {
   vertical-align: top;
 }
 
+a.logo {
+  color: black;
+}
+
 .landscape {
   display: none;
 }
@@ -130,6 +134,21 @@ tr {
 }
 
 /* styles based on bootstrap 3.0 */
+
+a {
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: #2a6496;
+}
+
+a:focus {
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
 
 h1 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;

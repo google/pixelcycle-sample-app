@@ -93,7 +93,7 @@ void handleSave(Player player, Editor editor, ButtonElement elt, util.Text statu
   status.value = "Saving...";
   server.save(player).then((String url) {
     status.value = "Reloading...";
-    window.sessionStorage["loadMessage"] = "Saved. You can share this page now.";
+    window.sessionStorage["loadMessage"] = "Saved. You can share or bookmark this page now.";
     editor.saved = true;
     window.location.assign(url);
   }).catchError((e) {
