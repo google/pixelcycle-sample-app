@@ -229,3 +229,25 @@ h1 {
   background-color: #428bca;
   border-color: #357ebd;
 }
+
+.btn-default {
+  color: #333333;
+  background-color: #ffffff;
+  border-color: #cccccc;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active  {
+  color: #333333;
+  background-color: #ebebeb;
+  border-color: #adadad;
+}
+
+.btn-default[disabled],
+.btn-default[disabled]:hover,
+.btn-default[disabled]:focus,
+.btn-default[disabled]:active {
+  background-color: #ffffff;
+  border-color: #cccccc;
+}

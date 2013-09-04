@@ -82,7 +82,8 @@ List<int> standardPalette = [
 Future<Player> load(String id) {
   var c = new Completer<Player>();
   HttpRequest.getString("/json/${id}")
-      .then((data) => c.complete(parse(data)));
+      .then((data) => c.complete(parse(data)))
+      .catchError((e) => c.completeError(e));
   return c.future;
 }
 

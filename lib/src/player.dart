@@ -4,6 +4,7 @@ import 'dart:html';
 import 'dart:async' show Stream, StreamController, StreamSubscription;
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
+import 'package:pixelcycle2/src/palette.dart' show Palette;
 
 /// A Player contains the position and speed at which the movie is playing.
 /// A position is represented as float between 0 up to (and not including) the number of frames in the movie.
@@ -24,6 +25,13 @@ class Player {
   num _speed = 0;
 
   Player(this.movie);
+
+  factory Player.blank() {
+    var movie = new Movie.blank(new Palette.standard(), 8);
+    var player = new Player(movie);
+    player.speed = 10;
+    return player;
+  }
 
   Stream<Player> get onChange => _onChange.stream;
 

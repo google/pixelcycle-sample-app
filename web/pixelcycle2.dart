@@ -10,69 +10,62 @@ import 'package:pixelcycle2/src/server.dart' as server;
 import 'package:pixelcycle2/src/ui.dart' as ui;
 import 'package:pixelcycle2/src/util.dart' as util;
 
-RegExp savedMoviePath = new RegExp(r"^/m(\d+)$");
+
+RegExp gifPath = new RegExp(r"^/gif/(\d+)$");
 
 void main() {
   print("main entered");
 
   String gif = query("#gif").attributes["src"];
-  bool skipPreview = gif.startsWith("{{");
-  if (skipPreview) {
+  var match = gifPath.firstMatch(gif);
+  if (match == null) {
     ui.hidePreview();
+    startEditor(new Player.blank(), new util.Text());
+    return;
   }
+  var movieId = match.group(1);
 
   var status = new util.Text();
   if (window.sessionStorage["loadMessage"] != null) {
     status.value = window.sessionStorage["loadMessage"];
     window.sessionStorage.remove("loadMessage");
   }
+
   ui.previewStatus(status);
 
-  loadPlayer().then((Player player) {
-    print("player loaded");
-
-    if (skipPreview) {
-      return new Future.value(player);
-    }
-
-    print("showing preview");
-    ButtonElement paint = query("#paint");
-
-    var c = new Completer();
-    paint.onClick.first.then((e) {
-      c.complete(player);
-    });
-
-    paint.disabled = false;
-
-    return c.future;
-  }).then((Player player) {
-    print("starting editor");
-
-    var brush = new Brush(player.movie.palette);
-    brush.selection = 26;
-
-    ui.startEditor(player, new Editor(), brush, status);
-
-    if (!skipPreview) {
-      status.value = null;
-    }
-
-    player.playing = true;
-
-    print("started");
+  server.load(movieId).then((Player thisPicture) {
+    print("movie loaded");
+    enableButtons(thisPicture, status);
+  }).catchError((e) {
+    print("can't load movie");
+    enableButtons(new Player.blank(), status);
   });
 }
 
-Future<Player> loadPlayer() {
+void enableButtons(Player thisPicture, util.Text status) {
+  ButtonElement edit = query("#edit");
+  edit.onClick.first.then((e) {
+    status.value = null;
+    startEditor(thisPicture, status);
+  });
+  edit.disabled = false;
 
-  var match = savedMoviePath.firstMatch(window.location.pathname);
-  if (match != null) {
-    return server.load(match.group(1));
-  }
+  ButtonElement start = query("#start-anew");
+  start.onClick.first.then((e) {
+    status.value = null;
+    startEditor(new Player.blank(), status);
+  });
+  start.disabled = false;
+}
 
-  var movie = new Movie.blank(new Palette.standard(), 8);
-  var player = new Player(movie);
-  player.speed = 10;
-  return new Future.value(player);
+void startEditor(Player player, util.Text status) {
+  print("starting editor");
+
+  var brush = new Brush(player.movie.palette);
+  brush.selection = 26;
+
+  ui.startEditor(player, new Editor(), brush, status);
+  player.playing = true;
+
+  print("ready to edit");
 }

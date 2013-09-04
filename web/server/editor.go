@@ -5,7 +5,10 @@ import (
 	"html/template"
 	"net/http"
 	"regexp"
+	"strconv"
 )
+
+const defaultMovieId = 6401356696911872
 
 var moviePattern = regexp.MustCompile("^/m([0-9]+)$")
 
@@ -28,7 +31,7 @@ func editorHandler(w http.ResponseWriter, r *http.Request) {
 		id := groups[1]
 		imageUrl = "/gif/" + id
 	} else {
-		imageUrl = "/logo.gif"
+		imageUrl = "/gif/" + strconv.Itoa(defaultMovieId)
 	}
 
 	w.Header().Set("Content-Type", "text/html")
