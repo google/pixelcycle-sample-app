@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-frontpage
+version: draft-strip
 runtime: go
 api_version: go1
 

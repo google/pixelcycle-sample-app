@@ -207,6 +207,7 @@ class StripView {
     int currentFrame = moviePosition ~/ 1;
     var movie = player.movie;
 
+    // resize the canvas to match the wanted side (and also clear it)
     if (vertical && elt.clientHeight >= 200 && elt.clientHeight <= 2000) {
       elt.height = elt.clientHeight;
     } else if (!vertical && elt.clientWidth >= 200 && elt.clientWidth <= 2000) {
@@ -223,15 +224,28 @@ class StripView {
     // frame position in pixels from left or top.
     int framePos = ((frame - startPos) * pixelsPerFrame) ~/ 1 + SPACER ~/ 2;
     int endPos = vertical ? elt.height : elt.width;
+    c.fillStyle = "#444444";
     while (framePos < endPos) {
+
       // Set the alpha based on the distance from the center. (Proportional to total size.)
-      var alphaDist = (framePos - center).abs() / (center * 2);
-      c.globalAlpha = 0.8 - alphaDist * 0.6;
+      var frameCenter = framePos + (vertical ? size.height / 2 : size.width / 2);
+      var alphaDist = (frameCenter - center).abs() / (center * 2);
+      c.globalAlpha = 0.8 - alphaDist * alphaDist * 2;
       if (vertical) {
         movie.frames[frame].renderAt(c, SPACER, framePos, size.pixelsize);
       } else {
         movie.frames[frame].renderAt(c, framePos, SPACER, size.pixelsize);
       }
+
+      alphaDist = (framePos - center).abs() / (center * 2);
+      c.globalAlpha = 0.8 - alphaDist * alphaDist * 2;
+      if (vertical) {
+        c.fillRect(SPACER, framePos - SPACER, size.width, SPACER);
+      } else {
+        c.fillRect(framePos - SPACER, SPACER, SPACER, size.height);
+      }
+
+
       frame = (frame + 1) % movie.frames.length;
       framePos += pixelsPerFrame;
     }
