@@ -5,6 +5,13 @@
   <meta charset="utf-8">
   <title>Pixelcycle</title>
   <link rel="stylesheet" href="pixelcycle2.css">
+
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  </script>
 </head>
 
 <body>
@@ -16,6 +23,14 @@
     <button id="edit" class="btn btn-primary" disabled>Edit Painting</button> or
     <button id="start-anew" class="btn btn-default" disabled>Start Anew</button>
   </div>
+  <script>
+    if (/^\/m[0-9]+$/.test(window.location.pathname)) {
+      ga('set', 'page', '/m*');
+    }
+    ga('set', 'gif', document.getElementById('gif').getAttribute("src"));
+    ga('create', 'UA-43568069-1', 'pixelcycle.appspot.com');
+    ga('send', 'pageview');
+  </script>
 
   <div class="portrait start-hidden">
     <div class="buttons">
@@ -45,15 +60,6 @@
   <table class="palette start-hidden"></table>
 
   <script src="pixelcycle2.dart.js" defer></script>
-  <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-43568069-1', 'pixelcycle.appspot.com');
-  ga('send', 'pageview');
-  </script>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-fixstatus
+version: draft-fixanalytics
 runtime: go
 api_version: go1
 
