@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-strip
+version: draft-cachejson
 runtime: go
 api_version: go1
 
