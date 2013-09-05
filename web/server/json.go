@@ -3,8 +3,10 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"appengine"
+	"appengine/memcache"
 )
 
 func init() {
@@ -19,6 +21,17 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// try memcache
+
+	memId := jsonMemId(id)
+	if item, err := memcache.Get(c, memId); err == nil {
+		sendJson(c, w, item.Value)
+		return
+	}
+	c.Debugf("cache miss for %v", memId)
+
+	// try datastore
+
 	m, ok := loadMovie(w, r, id)
 	if !ok {
 		return
@@ -31,8 +44,30 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cacheJson(c, id, data)
+	sendJson(c, w, data)
+}
+
+func jsonMemId(id int64) string {
+	return "json-" + strconv.FormatInt(id, 10)
+}
+
+func cacheJson(c appengine.Context, id int64, data []byte) error {
+	memId := jsonMemId(id)
+	item := &memcache.Item{
+		Key:   memId,
+		Value: data,
+	}
+	err := memcache.Set(c, item)
+	if err != nil {
+		c.Warningf("can't write %v to memcache: %v", memId, err)
+	}
+	return err
+}
+
+func sendJson(c appengine.Context, w http.ResponseWriter, data []byte) {
 	w.Header().Add("Content-Type", "application/json")
-	_, err = w.Write(data)
+	_, err := w.Write(data)
 	if err != nil {
 		c.Debugf("can't write json to client: %v", err)
 	}

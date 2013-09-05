@@ -90,6 +90,14 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create normalized json
+	jsonData, err := json.Marshal(&m)
+	if err != nil {
+		c.Errorf("can't marshal JSON for movie: %v", err)
+		http.Error(w, "can't save movie", http.StatusBadRequest)
+		return
+	}
+
 	// Save
 
 	k := datastore.NewIncompleteKey(c, "Movie", nil)
@@ -104,6 +112,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cacheGif(c, k.IntID(), gif)
+	cacheJson(c, k.IntID(), jsonData)
 
 	fmt.Fprintf(w, "/m%v", k.IntID())
 }
