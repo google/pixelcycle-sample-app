@@ -2,7 +2,7 @@ library share;
 
 import 'dart:async' show Future, Completer;
 import 'dart:html' show HttpRequest, HttpRequestProgressEvent;
-import 'dart:json' as json;
+import 'dart:convert' show JSON;
 
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, Movie, Frame;
 import 'package:pixelcycle2/src/palette.dart' show Palette;
@@ -29,7 +29,7 @@ String stringify(Player player) {
     print("   standard palette: ${standardPalette}");
     data['Palette'] = palette;
   }
-  return json.stringify(data);
+  return JSON.encode(data);
 }
 
 bool equalLists(List a, List b) {
@@ -90,7 +90,7 @@ Future<Player> load(String id) {
 Player parse(String dataString) {
   var palette = new Palette.standard();
 
-  Map data = json.parse(dataString);
+  Map data = JSON.decode(dataString);
   if (data["Version"] != 2) {
     throw "unexpected version: ${data["Version"]}";
   }

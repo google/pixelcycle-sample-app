@@ -1,6 +1,5 @@
 import 'dart:html';
 import 'dart:async' show Future, Completer;
-import 'dart:json' as json;
 
 import 'package:pixelcycle2/src/editor.dart' show Editor;
 import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
