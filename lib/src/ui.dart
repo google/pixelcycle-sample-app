@@ -10,12 +10,17 @@ import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag, FrameStack;
 import 'package:pixelcycle2/src/server.dart' as server;
 import 'package:pixelcycle2/src/util.dart' as util;
 
-void previewStatus(util.Text status) {
+void updatePreviewStatus(util.Text status) {
   if (status.value != null) {
-    List<HtmlElement> statusElts = queryAll('.status');
+    List<HtmlElement> statusElts = queryAll('.preview .status');
     for (HtmlElement elt in statusElts) {
       elt.text = status.value;
       elt.classes.remove("fade-hidden");
+    }
+  } else {
+    List<HtmlElement> statusElts = queryAll('.preview .status');
+    for (HtmlElement elt in statusElts) {
+      elt.classes.add("fade-hidden");
     }
   }
 }

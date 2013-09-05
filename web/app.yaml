@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-cachejson
+version: draft-fixstatus
 runtime: go
 api_version: go1
 

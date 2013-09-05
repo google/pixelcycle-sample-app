@@ -26,6 +26,7 @@ a.logo {
 
 .preview .status {
   max-width: 340px;
+  height: 20px;
 }
 
 #gif {

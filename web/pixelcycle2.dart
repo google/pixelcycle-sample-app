@@ -30,7 +30,7 @@ void main() {
     window.sessionStorage.remove("loadMessage");
   }
 
-  ui.previewStatus(status);
+  ui.updatePreviewStatus(status);
 
   server.load(movieId).then((Player thisPicture) {
     print("movie loaded");
