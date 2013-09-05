@@ -49,7 +49,7 @@ void enableButtons(Player thisPicture, util.Text status) {
   });
   edit.disabled = false;
 
-  ButtonElement start = query("#start-anew");
+  ButtonElement start = query("#create");
   start.onClick.first.then((e) {
     status.value = null;
     startEditor(new Player.blank(), status);

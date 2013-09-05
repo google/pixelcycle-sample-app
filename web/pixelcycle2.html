@@ -21,7 +21,7 @@
       <img id="gif" src="{{.}}" width="360" height="216">
     </div>
     <button id="edit" class="btn btn-primary" disabled>Edit Painting</button> or
-    <button id="start-anew" class="btn btn-default" disabled>Start Anew</button>
+    <button id="create" class="btn btn-default" disabled>Start Anew</button>
   </div>
   <script>
     if (/^\/m[0-9]+$/.test(window.location.pathname)) {
@@ -60,6 +60,18 @@
   <table class="palette start-hidden"></table>
 
   <script src="pixelcycle2.dart.js" defer></script>
+  <script>
+    function addListener(element, type, callback) {
+      if (element.addEventListener) element.addEventListener(type, callback);
+      else if (element.attachEvent) element.attachEvent('on' + type, callback);
+    }
+    addListener(document.getElementById('edit'), 'click', function() {
+      ga('send', 'event', 'button', 'click', 'edit');
+    });
+    addListener(document.getElementById('create'), 'click', function() {
+      ga('send', 'event', 'button', 'click', 'create');
+    });
+  </script>
 </body>
 
 </html>
