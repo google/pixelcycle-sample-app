@@ -31,7 +31,7 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Content-Type", "text/json") // not correct but "text/" is needed by Dart
+	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(data)
 	if err != nil {
 		c.Debugf("can't write json to client: %v", err)
