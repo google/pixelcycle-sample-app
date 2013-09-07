@@ -24,11 +24,11 @@
     <button id="create" class="btn btn-default" disabled>Start Anew</button>
   </div>
   <script>
+    ga('create', 'UA-43568069-1', 'pixelcycle.appspot.com');
     if (/^\/m[0-9]+$/.test(window.location.pathname)) {
-      ga('set', 'page', '/m*');
+      ga('set', 'page', '/m...');
     }
     ga('set', 'gif', document.getElementById('gif').getAttribute("src"));
-    ga('create', 'UA-43568069-1', 'pixelcycle.appspot.com');
     ga('send', 'pageview');
   </script>
 
