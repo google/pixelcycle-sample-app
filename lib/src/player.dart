@@ -6,6 +6,11 @@ import 'dart:async' show Stream, StreamController, StreamSubscription;
 import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
 import 'package:pixelcycle2/src/palette.dart' show Palette;
 
+List<num> posSpeedTicks = [0.5, 3, 7.5, 15, 30, 60];
+List<num> speedTicks =
+  posSpeedTicks.reversed.map((s) => -s).toList()
+  ..addAll(posSpeedTicks);
+
 /// A Player contains the position and speed at which the movie is playing.
 /// A position is represented as float between 0 up to (and not including) the number of frames in the movie.
 /// The first frame is shown for positions 0 to 1, the second, from 1 to 2, and so on.
@@ -29,7 +34,7 @@ class Player {
   factory Player.blank() {
     var movie = new Movie.blank(new Palette.standard(), 8);
     var player = new Player(movie);
-    player.speed = 10;
+    player.speed = 7.5;
     return player;
   }
 
@@ -65,6 +70,9 @@ class Player {
   num get speed => _speed;
 
   set speed(num newValue) {
+    if (_speed == newValue) {
+      return;
+    }
     if (playing) {
       num t = now();
       _startPosition = positionAt(t);
@@ -73,6 +81,31 @@ class Player {
     _speed = newValue;
     if (_speed == 0) {
       playing = false;
+    }
+    if (_onChange.hasListener) {
+      _onChange.add(this);
+    }
+  }
+
+  void reduceSpeed() {
+    num prevTick = speedTicks[0];
+    for (num tick in speedTicks) {
+      if (speed <= tick) {
+        speed = prevTick;
+        playing = true;
+        return;
+      }
+      prevTick = tick;
+    }
+  }
+
+  void increaseSpeed() {
+    for (num tick in speedTicks) {
+      if (speed < tick) {
+        speed = tick;
+        playing = true;
+        return;
+      }
     }
   }
 
@@ -211,10 +244,10 @@ class PlayDrag {
       return sign * 60;
     } else if (mag > 21) {
       return sign * 30;
-    } else if (mag >= 16) {
-      return sign * 20;
-    } else if (mag >= 13) {
+    } else if (mag > 13) {
       return sign * 15;
+    } else if (mag > 9) {
+      return sign * 10;
     }
 
     // Make it easier to stop.

@@ -38,21 +38,31 @@
       <button class="save btn btn-primary" disabled>Save</button>
       <button class="undo btn btn-default" disabled>Undo</button>
       <span class="status text-warning fade-hidden"></span>
+      <span class="speed-display">0</span>
     </div>
+    <div class="strip-row">
+    <button class="increase-speed">&lsaquo;</button>
     <canvas class="strip" data-vertical="false">
     </canvas>
+    <button class="reduce-speed">&rsaquo;</button>
+    </div>
     <canvas class="movie">
     </canvas>
   </div>
 
   <div class="landscape start-hidden">
     <table><tr>
-    <td><canvas class="strip" data-vertical="true"></canvas></td>
+    <td class="strip-column">
+      <button class="increase-speed"><span>&and;</span></button>
+      <canvas class="strip" data-vertical="true"></canvas>
+      <button class="reduce-speed">&or;</button>
+    </td>
     <td><canvas class="movie"></canvas></td>
-    <td>
+    <td class="buttons">
       <button class="save btn btn-primary" disabled>Save</button>
       <button class="undo btn btn-default" disabled>Undo</button>
       <div class="status text-warning fade-hidden"></div>
+      <div class="speed-display">0</div>
     </td>
     </tr></table>
   </div>

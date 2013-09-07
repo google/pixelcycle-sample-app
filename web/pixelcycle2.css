@@ -1,3 +1,4 @@
+/* defaults */
 
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -8,29 +9,28 @@ body {
   margin: 15px;
 }
 
-.inline {
-  display: inline;
-}
-
 tr {
   vertical-align: top;
 }
 
-a.logo {
-  color: black;
+/* util */
+
+.inline {
+  display: inline;
 }
 
-.landscape {
+.hidden, .start-hidden {
   display: none;
 }
 
-.preview .status {
-  max-width: 340px;
-  height: 20px;
+.fade-hidden {
+  opacity: 0;
 }
 
-#gif {
-  margin-bottom: 10px;
+/* widgets (all layouts) */
+
+a.logo {
+  color: black;
 }
 
 .status {
@@ -38,12 +38,26 @@ a.logo {
   padding: 5px 5px 5px 5px;
   border-left: 5px solid #f1e7bc;
   border-right: 5px solid #f1e7bc;
-  opacity: 1;
   transition: opacity .25s ease-in-out;
 }
 
-.fade-hidden {
-  opacity: 0;
+.strip-row button, .strip-column button {
+  color: #bbbbbb;
+}
+
+.strip-row button[disabled],
+.strip-column button[disabled],
+.strip-row button[disabled]:hover,
+.strip-column button[disabled]:hover {
+  color: #000000;
+}
+
+.strip-row button:hover, .strip-column button:hover {
+  color: #dddddd;
+}
+
+.strip-row button:active, .strip-column button:active {
+  color: #ffffff;
 }
 
 .palette {
@@ -52,8 +66,8 @@ a.logo {
 }
 
 .paletteCell {
-  width: 50px;
   height: 50px;
+  width: 50px;
   padding: 0;
   border: 0;
   outline:solid;
@@ -65,8 +79,43 @@ a.logo {
   outline-width: 3mm;
 }
 
+/* preview */
+
+.preview .status {
+  max-width: 340px;
+  height: 20px;
+}
+
+#gif {
+  margin-bottom: 10px;
+}
+
+/* landscape versus portrait toggle */
+
+.landscape {
+  display: none;
+}
+
+@media (orientation: landscape) and (min-width: 980px) {
+  .portrait {
+    display: none;
+  }
+  .landscape {
+    width: 930px;
+    display: block;
+  }
+}
+
+/* portrait settings */
+
 .portrait h1 {
   margin-bottom: 0;
+}
+
+@media (max-width: 500px) {
+  .portrait h1 {
+    display: none;
+  }
 }
 
 .portrait .btn {
@@ -80,18 +129,53 @@ a.logo {
   display: inline-block;
 }
 
-.hidden, .start-hidden {
-  display: none;
+.portrait .speed-display {
+  margin-top: 30px;
+  margin-left: -20px;
+  float: right;
 }
 
-.portrait canvas {
-  display: block;
+.portrait .strip-row {
+  position: relative;
+}
+
+.portrait .strip {
+  display: inline-block;
   width: 100%;
 }
 
+.portrait .strip-row > button {
+  position: absolute;
+  display: block;
+  top: 10px;
+  height: 72px;
+  width: 50px;
+  z-index: 1;
+  opacity: 0.5;
+  padding: 0;
+  vertical-align: middle;
+  font-size: 50px;
+  text-align: center;
+  background-color: black;
+  border: 0;
+}
+
+
+.portrait button.increase-speed {
+  left: 0;
+}
+
+.portrait button.reduce-speed {
+  right: 0;
+}
+
 .portrait .movie {
+  display: block;
+  width: 100%;
   margin-top: 10px;
 }
+
+/* landscape settings */
 
 .landscape table {
   border-collapse: collapse;
@@ -100,6 +184,42 @@ a.logo {
 
 .landscape td {
   padding: 0;
+}
+
+.landscape .strip-column {
+  position: relative;
+}
+
+.landscape .strip-column > button {
+  position: absolute;
+  display: block;
+  left: 10px;
+  width: 120px;
+  height: 60px;
+  z-index: 1;
+  opacity: 0.5;
+  padding: 0;
+  font-size: 50px;
+  text-align: center;
+  background-color: black;
+  border: 0;
+}
+
+.landscape button.increase-speed {
+  top: 0;
+  vertical-align: top;
+}
+
+.landscape button.increase-speed > span {
+  position: relative;
+  top: -10px;
+  overflow: hidden;
+}
+
+.landscape button.reduce-speed {
+  vertical-align: bottom;
+  padding-bottom: 10px;
+  bottom: 0px;
 }
 
 .landscape .movie {
@@ -111,27 +231,24 @@ a.logo {
   height: 432px;
 }
 
+.landscape .buttons {
+  position: relative;
+}
+
 .landscape .btn {
   margin-left: 10px;
   margin-bottom: 10px;
+  width: 62px;
 }
 
 .landscape .status {
   margin-left: 10px;
 }
 
-.landscape .share {
-  margin-top: 0;
-}
-
-
-@media (orientation: landscape) and (min-width: 960px) {
-  .portrait {
-    display: none;
-  }
-  .landscape {
-    display: block;
-  }
+.landscape .speed-display {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
 }
 
 /* styles based on bootstrap 3.0 */

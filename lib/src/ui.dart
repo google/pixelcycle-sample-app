@@ -58,6 +58,45 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
     }
   });
 
+  // speeds
+
+  List<DivElement> speedElts = queryAll(".speed-display");
+  List<ButtonElement> reduceButtons = queryAll(".reduce-speed");
+  List<ButtonElement> increaseButtons = queryAll(".increase-speed");
+  player.onChange.listen((_) {
+    String text;
+    if (player.speed == 0) {
+      text = "0 fps";
+    } else if (player.speed.abs() < 10) {
+      text = "${player.speed.toStringAsFixed(1)} fps";
+    } else {
+      text = "${player.speed.toStringAsPrecision(2)} fps";
+    }
+    for (DivElement elt in speedElts) {
+      elt.text = text;
+    }
+    for (ButtonElement elt in reduceButtons) {
+      elt.disabled = player.speed <= -60;
+    }
+    for (ButtonElement elt in increaseButtons) {
+      elt.disabled = player.speed >= 60;
+    }
+  });
+
+  for (ButtonElement elt in reduceButtons) {
+    elt.onClick.listen((e) {
+      e.preventDefault();
+      player.reduceSpeed();
+    });
+  }
+
+  for (ButtonElement elt in increaseButtons) {
+    elt.onClick.listen((e) {
+      e.preventDefault();
+      player.increaseSpeed();
+    });
+  }
+
   var undoButtons = queryAll('.undo');
   for (ButtonElement elt in undoButtons) {
     elt.onClick.listen((e) => editor.undo());
