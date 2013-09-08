@@ -3,12 +3,12 @@ library ui;
 import 'dart:async' show StreamSubscription;
 import 'dart:html';
 
-import 'package:pixelcycle2/src/editor.dart' show Editor;
-import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame;
-import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
-import 'package:pixelcycle2/src/player.dart' show Player, PlayDrag, FrameStack;
-import 'package:pixelcycle2/src/server.dart' as server;
-import 'package:pixelcycle2/src/util.dart' as util;
+import 'package:pixelcycle/src/editor.dart' show Editor;
+import 'package:pixelcycle/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame;
+import 'package:pixelcycle/src/palette.dart' show Palette, Brush;
+import 'package:pixelcycle/src/player.dart' show Player, PlayDrag, FrameStack;
+import 'package:pixelcycle/src/server.dart' as server;
+import 'package:pixelcycle/src/util.dart' as util;
 
 void updatePreviewStatus(util.Text status) {
   if (status.value != null) {

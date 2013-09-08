@@ -2,7 +2,7 @@ library editor;
 
 import 'dart:async' show Stream, StreamController;
 
-import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame, PixelChange;
+import 'package:pixelcycle/src/movie.dart' show WIDTH, HEIGHT, LARGE, ALL, Movie, Frame, PixelChange;
 
 /// An Editor performs edits and remembers undo history.
 class Editor {

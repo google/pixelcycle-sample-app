@@ -23,7 +23,7 @@ handlers:
   static_files: \1
   upload: (.*\.(css|js|js\.map|gif))
 
-- url: /(packages/pixelcycle2/src/.*\.dart)
+- url: /(packages/.*/src/.*\.dart)
   static_files: \1
-  upload: /packages/pixelcycle2/src/.*\.dart
+  upload: /packages/.*/src/.*\.dart
 

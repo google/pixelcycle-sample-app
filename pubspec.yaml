@@ -1,6 +1,6 @@
-name: pixelcycle2
-description: A sample web application
-dependencies:
-  browser: any
+name: pixelcycle
+author: Brian Slesinsky
+description: A simple paint program that creates animated gifs.
+homepage: https://github.com/google/pixelcycle-sample-app/
 dependencies:
   fixnum: any

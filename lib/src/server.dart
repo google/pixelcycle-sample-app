@@ -4,9 +4,9 @@ import 'dart:async' show Future, Completer;
 import 'dart:html' show HttpRequest, HttpRequestProgressEvent;
 import 'dart:convert' show JSON;
 
-import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, Movie, Frame;
-import 'package:pixelcycle2/src/palette.dart' show Palette;
-import 'package:pixelcycle2/src/player.dart' show Player;
+import 'package:pixelcycle/src/movie.dart' show WIDTH, HEIGHT, Movie, Frame;
+import 'package:pixelcycle/src/palette.dart' show Palette;
+import 'package:pixelcycle/src/player.dart' show Player;
 
 /// Saves the current state and returns a new URL that can be used to load it.
 Future<String> save(Player player) {

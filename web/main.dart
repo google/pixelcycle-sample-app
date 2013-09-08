@@ -1,13 +1,13 @@
 import 'dart:html';
 import 'dart:async' show Future, Completer;
 
-import 'package:pixelcycle2/src/editor.dart' show Editor;
-import 'package:pixelcycle2/src/palette.dart' show Palette, Brush;
-import 'package:pixelcycle2/src/movie.dart' show Movie, Frame, WIDTH, HEIGHT;
-import 'package:pixelcycle2/src/player.dart' show Player;
-import 'package:pixelcycle2/src/server.dart' as server;
-import 'package:pixelcycle2/src/ui.dart' as ui;
-import 'package:pixelcycle2/src/util.dart' as util;
+import 'package:pixelcycle/src/editor.dart' show Editor;
+import 'package:pixelcycle/src/palette.dart' show Palette, Brush;
+import 'package:pixelcycle/src/movie.dart' show Movie, Frame, WIDTH, HEIGHT;
+import 'package:pixelcycle/src/player.dart' show Player;
+import 'package:pixelcycle/src/server.dart' as server;
+import 'package:pixelcycle/src/ui.dart' as ui;
+import 'package:pixelcycle/src/util.dart' as util;
 
 
 RegExp gifPath = new RegExp(r"^/gif/(\d+)$");

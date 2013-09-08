@@ -17,7 +17,7 @@ var editorPage *template.Template
 func init() {
 	http.HandleFunc("/", editorHandler)
 	var err error
-	editorPage, err = template.ParseFiles("pixelcycle2.html")
+	editorPage, err = template.ParseFiles("main.html")
 	if err != nil {
 		panic(fmt.Sprintf("can't load editorPage template: %v", err))
 	}

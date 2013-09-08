@@ -2,7 +2,7 @@ library movie;
 
 import 'dart:html' show CanvasElement, CanvasRenderingContext2D, Rect, Point;
 import 'dart:async' show Stream, StreamController;
-import 'package:pixelcycle2/src/palette.dart' show Palette;
+import 'package:pixelcycle/src/palette.dart' show Palette;
 
 const int WIDTH = 60;
 const int HEIGHT = 36;

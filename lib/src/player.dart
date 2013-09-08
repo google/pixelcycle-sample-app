@@ -3,8 +3,8 @@ library player;
 import 'dart:html';
 import 'dart:async' show Stream, StreamController, StreamSubscription;
 
-import 'package:pixelcycle2/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
-import 'package:pixelcycle2/src/palette.dart' show Palette;
+import 'package:pixelcycle/src/movie.dart' show WIDTH, HEIGHT, ALL, Movie, Frame, Size;
+import 'package:pixelcycle/src/palette.dart' show Palette;
 
 List<num> posSpeedTicks = [0.5, 3, 7.5, 15, 30, 60];
 List<num> speedTicks =
