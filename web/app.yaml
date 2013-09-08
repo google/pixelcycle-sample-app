@@ -1,5 +1,5 @@
 application: pixelcycle
-version: draft-speedbuttons
+version: draft
 runtime: go
 api_version: go1
 
