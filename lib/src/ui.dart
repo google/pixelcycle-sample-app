@@ -65,12 +65,13 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
   List<ButtonElement> increaseButtons = queryAll(".increase-speed");
   player.onChange.listen((_) {
     String text;
-    if (player.speed == 0) {
+    num speed = player.speed.abs();
+    if (speed == 0) {
       text = "0 fps";
-    } else if (player.speed.abs() < 10) {
-      text = "${player.speed.toStringAsFixed(1)} fps";
+    } else if (speed < 10) {
+      text = "${speed.toStringAsFixed(1)} fps";
     } else {
-      text = "${player.speed.toStringAsPrecision(2)} fps";
+      text = "${speed.toStringAsPrecision(2)} fps";
     }
     for (DivElement elt in speedElts) {
       elt.text = text;
