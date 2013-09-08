@@ -13,20 +13,6 @@ tr {
   vertical-align: top;
 }
 
-/* util */
-
-.inline {
-  display: inline;
-}
-
-.hidden, .start-hidden {
-  display: none;
-}
-
-.fade-hidden {
-  opacity: 0;
-}
-
 /* widgets (all layouts) */
 
 a.logo {
@@ -249,6 +235,20 @@ a.logo {
   position: absolute;
   bottom: 0;
   left: 10px;
+}
+
+/* util */
+
+.inline {
+  display: inline;
+}
+
+.hidden, .start-hidden {
+  display: none;
+}
+
+.fade-hidden {
+  opacity: 0;
 }
 
 /* styles based on bootstrap 3.0 */
