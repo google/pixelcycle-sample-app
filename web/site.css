@@ -76,6 +76,10 @@ a.logo {
   margin-bottom: 10px;
 }
 
+.footer {
+  margin-top: 30px;
+}
+
 /* landscape versus portrait toggle */
 
 .landscape {
