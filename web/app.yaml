@@ -33,9 +33,9 @@ handlers:
 - url: /save
   script: _go_app
 
-- url: /(.*\.(css|js|js\.map|gif))
+- url: /(.*\.(css|js|js\.map|gif|dart))
   static_files: \1
-  upload: (.*\.(css|js|js\.map|gif))
+  upload: (.*\.(css|js|js\.map|gif|dart))
 
 - url: /(packages/.*/src/.*\.dart)
   static_files: \1
