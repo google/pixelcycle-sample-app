@@ -12,7 +12,7 @@ Setting up a Development Environment
 Pixelcycle is written in Dart and Go and runs on App Engine. You will need the Dart Editor
 (which includes the Dart SDK) and the Go SDK for App Engine.
 
-In the Dart Editor, choose File -> Open Existing Folder and select the folder containing 
+In the Dart Editor, choose File -> Open Existing Folder and select the folder containing
 this README file and pubspec.yaml.
 
 The Dart Editor contains an embedded web server that automatically runs the compiler when
@@ -28,5 +28,4 @@ with a command like this.
 
   {path-to-sdk}/dev_appserver.py web/app.yaml
 
-Then try it out at http://localhost:8080/. The front page will have a broken link, but other than
-that, loading and saving should work.
+Then try it out at http://localhost:8080/.

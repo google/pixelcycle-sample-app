@@ -4,6 +4,20 @@ runtime: go
 api_version: go1
 
 handlers:
+
+# cache front page assets
+- url: /gif/6401356696911872
+  static_files: front.gif
+  upload: front.gif
+
+- url: /json/6401356696911872
+  static_files: front.json
+  upload: front.json
+
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+
 - url: /
   script: _go_app
 
