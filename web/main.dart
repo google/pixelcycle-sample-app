@@ -36,8 +36,8 @@ void main() {
     print("movie loaded");
     enableButtons(thisPicture, status);
   }).catchError((e) {
-    print("can't load movie");
-    enableButtons(new Player.blank(), status);
+    print("can't load movie: ${e}");
+    enableCreateButton(status);
   });
 }
 
@@ -49,6 +49,10 @@ void enableButtons(Player thisPicture, util.Text status) {
   });
   edit.disabled = false;
 
+  enableCreateButton(status);
+}
+
+void enableCreateButton(util.Text status) {
   ButtonElement start = query("#create");
   start.onClick.first.then((e) {
     status.value = null;

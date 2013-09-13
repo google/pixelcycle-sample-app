@@ -91,7 +91,7 @@ Player parse(String dataString) {
   var palette = new Palette.standard();
 
   Map data = JSON.decode(dataString);
-  if (data["Version"] != 2) {
+  if (![2, 3].contains(data["Version"])) {
     throw "unexpected version: ${data["Version"]}";
   }
   if (data["Width"] != WIDTH || data["Height"] != HEIGHT) {
