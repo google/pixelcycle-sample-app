@@ -1,13 +1,13 @@
 library movie;
 
-import 'dart:html' show CanvasElement, CanvasRenderingContext2D, Rect, Point;
+import 'dart:html' show CanvasElement, CanvasRenderingContext2D, Rectangle, Point;
 import 'dart:async' show Stream, StreamController;
 import 'package:pixelcycle/src/palette.dart' show Palette;
 
 const int WIDTH = 60;
 const int HEIGHT = 36;
 const int PIXELSIZE = 2;
-const Rect ALL = const Rect(0, 0, WIDTH, HEIGHT);
+const Rectangle ALL = const Rectangle(0, 0, WIDTH, HEIGHT);
 
 class Movie {
   final Palette palette;
@@ -46,7 +46,7 @@ class Frame {
   final Palette palette;
   final CanvasElement elt = new CanvasElement();
   final List<int> pixels = new List<int>(WIDTH * HEIGHT);
-  final StreamController<Rect> _onChange = new StreamController<Rect>.broadcast();
+  final StreamController<Rectangle> _onChange = new StreamController<Rectangle>.broadcast();
 
   Frame(this.palette) {
     elt.width = WIDTH * PIXELSIZE;
@@ -90,13 +90,13 @@ class Frame {
 
   // Draws the pixels within clip to the given context.
   // (The clip is measured in grid coordinates.)
-  void render(CanvasRenderingContext2D c, Rect clip, num pixelsize) {
-    Rect expanded = new Rect(clip.left - 0.5, clip.top - 0.5, clip.width + 1, clip.height + 1).intersection(ALL);
+  void render(CanvasRenderingContext2D c, Rectangle clip, num pixelsize) {
+    Rectangle expanded = new Rectangle(clip.left - 0.5, clip.top - 0.5, clip.width + 1, clip.height + 1).intersection(ALL);
     c.drawImageToRect(elt, scaleRect(expanded, pixelsize), sourceRect: scaleRect(expanded, PIXELSIZE));
   }
 
   void renderAt(CanvasRenderingContext2D c, int x, int y, num pixelsize) {
-    c.drawImageToRect(elt, new Rect(x, y, WIDTH * pixelsize, HEIGHT * pixelsize), sourceRect: scaleRect(ALL, PIXELSIZE));
+    c.drawImageToRect(elt, new Rectangle(x, y, WIDTH * pixelsize, HEIGHT * pixelsize), sourceRect: scaleRect(ALL, PIXELSIZE));
   }
 }
 
@@ -130,11 +130,11 @@ class PixelChange {
     c.fillStyle = frame.palette[colorIndex];
     c.fillRect(x * PIXELSIZE, y * PIXELSIZE, PIXELSIZE, PIXELSIZE);
     if (frame._onChange.hasListener) {
-      frame._onChange.add(new Rect(x, y, 1, 1));
+      frame._onChange.add(new Rectangle(x, y, 1, 1));
     }
   }
 }
 
-Rect scaleRect(Rect r, num pixelsize) {
-  return new Rect(r.left * pixelsize, r.top * pixelsize, r.width * pixelsize, r.height * pixelsize);
+Rectangle scaleRect(Rectangle r, num pixelsize) {
+  return new Rectangle(r.left * pixelsize, r.top * pixelsize, r.width * pixelsize, r.height * pixelsize);
 }

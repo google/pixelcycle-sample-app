@@ -3,4 +3,5 @@ author: Brian Slesinsky
 description: A simple paint program that creates animated gifs.
 homepage: https://github.com/google/pixelcycle-sample-app/
 dependencies:
-  fixnum: any
+  fixnum: ">=0.9.0 < 0.10.0"
+  browser: any

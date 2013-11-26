@@ -15,7 +15,7 @@ RegExp gifPath = new RegExp(r"^/gif/(\d+)$");
 void main() {
   print("main entered");
 
-  String gif = query("#gif").attributes["src"];
+  String gif = querySelector("#gif").attributes["src"];
   var match = gifPath.firstMatch(gif);
   if (match == null) {
     ui.hidePreview();
@@ -42,7 +42,7 @@ void main() {
 }
 
 void enableButtons(Player thisPicture, util.Text status) {
-  ButtonElement edit = query("#edit");
+  ButtonElement edit = querySelector("#edit");
   edit.onClick.first.then((e) {
     status.value = null;
     startEditor(thisPicture, status);
@@ -53,7 +53,7 @@ void enableButtons(Player thisPicture, util.Text status) {
 }
 
 void enableCreateButton(util.Text status) {
-  ButtonElement start = query("#create");
+  ButtonElement start = querySelector("#create");
   start.onClick.first.then((e) {
     status.value = null;
     startEditor(new Player.blank(), status);

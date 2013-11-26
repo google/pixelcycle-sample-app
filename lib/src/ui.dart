@@ -12,13 +12,13 @@ import 'package:pixelcycle/src/util.dart' as util;
 
 void updatePreviewStatus(util.Text status) {
   if (status.value != null) {
-    List<HtmlElement> statusElts = queryAll('.preview .status');
+    List<HtmlElement> statusElts = querySelectorAll('.preview .status');
     for (HtmlElement elt in statusElts) {
       elt.text = status.value;
       elt.classes.remove("fade-hidden");
     }
   } else {
-    List<HtmlElement> statusElts = queryAll('.preview .status');
+    List<HtmlElement> statusElts = querySelectorAll('.preview .status');
     for (HtmlElement elt in statusElts) {
       elt.classes.add("fade-hidden");
     }
@@ -26,10 +26,10 @@ void updatePreviewStatus(util.Text status) {
 }
 
 void hidePreview() {
-  for (var elt in queryAll(".preview")) {
+  for (var elt in querySelectorAll(".preview")) {
     elt.classes.add("hidden");
   }
-  for (var elt in queryAll(".start-hidden")) {
+  for (var elt in querySelectorAll(".start-hidden")) {
     elt.classes.remove("start-hidden");
   }
 }
@@ -38,7 +38,7 @@ void hidePreview() {
 void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
   hidePreview();
 
-  List<HtmlElement> statusElts = queryAll('.status');
+  List<HtmlElement> statusElts = querySelectorAll('.status');
   status.onChange.listen((value) {
     for (HtmlElement elt in statusElts) {
       if (value == null) {
@@ -52,7 +52,7 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
   });
 
   player.movie.onChange.first.then((e) {
-    for (ButtonElement elt in queryAll('.save')) {
+    for (ButtonElement elt in querySelectorAll('.save')) {
       elt.onClick.listen((e) => handleSave(player, editor, elt, status));
       elt.disabled = false;
     }
@@ -60,9 +60,9 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
 
   // speeds
 
-  List<DivElement> speedElts = queryAll(".speed-display");
-  List<ButtonElement> reduceButtons = queryAll(".reduce-speed");
-  List<ButtonElement> increaseButtons = queryAll(".increase-speed");
+  List<DivElement> speedElts = querySelectorAll(".speed-display");
+  List<ButtonElement> reduceButtons = querySelectorAll(".reduce-speed");
+  List<ButtonElement> increaseButtons = querySelectorAll(".increase-speed");
   player.onChange.listen((_) {
     String text;
     num speed = player.speed.abs();
@@ -98,7 +98,7 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
     });
   }
 
-  var undoButtons = queryAll('.undo');
+  var undoButtons = querySelectorAll('.undo');
   for (ButtonElement elt in undoButtons) {
     elt.onClick.listen((e) => editor.undo());
   }
@@ -115,16 +115,16 @@ void startEditor(Player player, Editor editor, Brush brush, util.Text status) {
     }
   });
 
-  for (CanvasElement elt in queryAll('.strip')) {
+  for (CanvasElement elt in querySelectorAll('.strip')) {
     bool vertical = elt.attributes["data-vertical"] == "true";
     new StripView(player, elt, SMALL, vertical: vertical);
   }
 
-  for (CanvasElement elt in queryAll('.movie')) {
+  for (CanvasElement elt in querySelectorAll('.movie')) {
     new MovieView(player, editor, brush, elt);
   }
 
-  for (TableElement elt in queryAll('.palette')) {
+  for (TableElement elt in querySelectorAll('.palette')) {
     int width = brush.palette.length ~/ 4;
     if (elt.attributes.containsKey("data-width")) {
       width = int.parse(elt.attributes["data-width"]);
@@ -139,7 +139,7 @@ void handleSave(Player player, Editor editor, ButtonElement elt, util.Text statu
   server.save(player).then((String url) {
     status.value = "Reloading...";
     window.sessionStorage["loadMessage"] = "Saved. You can share or bookmark this page now.";
-    editor.saved = true;
+     editor.saved = true;
     window.location.assign(url);
   }).catchError((e) {
     print("error: ${e}");
@@ -195,7 +195,7 @@ class StripView {
 
     elt.onMouseUp.listen((e) => _finishDrag());
     elt.onMouseOut.listen((e) => _finishDrag());
-    query("body").onMouseUp.listen((e) => _finishDrag());
+    querySelector("body").onMouseUp.listen((e) => _finishDrag());
 
     elt.onTouchStart.listen((TouchEvent e) {
       e.preventDefault();
@@ -322,7 +322,7 @@ class StripView {
     if (_frameSub != null) {
       _frameSub.cancel();
     }
-    _frameSub = _frame.onChange.listen((Rect r) => renderAsync());
+    _frameSub = _frame.onChange.listen((Rectangle r) => renderAsync());
   }
 }
 
@@ -338,7 +338,7 @@ class MovieView {
   Size size;
   FrameStack _frame; // The most recently rendered frame (being watched) and the one behind it.
   StreamSubscription _frameSub;
-  Rect _damage; // Area of the watched frame that needs re-rendering.
+  Rectangle _damage; // Area of the watched frame that needs re-rendering.
   DateTime _redrawWanted; // Non-null if a render was requested.
   var _onFrameChange = () {};
 
@@ -360,7 +360,7 @@ class MovieView {
       _moveSub = elt.onMouseMove.listen(_mousePaint);
     });
 
-    query("body").onMouseUp.listen((e) => _stopMousePaint());
+    querySelector("body").onMouseUp.listen((e) => _stopMousePaint());
     elt.onMouseOut.listen((e) => _stopMousePaint());
 
     elt.onTouchStart.listen(_fingerPaint);
@@ -402,19 +402,19 @@ class MovieView {
     for (Touch t in e.targetTouches) {
       int canvasX = t.page.x - elt.documentOffset.x;
       int canvasY = t.page.y - elt.documentOffset.y;
-      int x = (canvasX / size.pixelsize).toInt();
-      int y = (canvasY / size.pixelsize).toInt();
+      int x = canvasX ~/ size.pixelsize;
+      int y = canvasY ~/ size.pixelsize;
       editor.set(_frame.front, x, y, brush.selection);
     }
     // Repeat on each frame if the user is pressing the canvas
     _onFrameChange = () => _fingerPaint(e);
   }
 
-  void renderAsync(Rect clip) {
+  void renderAsync(Rectangle clip) {
     if (_damage == null) {
       _damage = clip;
     } else if (clip != null) {
-      _damage = _damage.union(clip);
+      _damage = _damage.boundingBox(clip);
     }
     if (_redrawWanted == null && elt.clientWidth > 0) {
       window.requestAnimationFrame(_render);
@@ -473,7 +473,7 @@ class MovieView {
     _damage = null;
   }
 
-  void _renderBlended(Rect clip) {
+  void _renderBlended(Rectangle clip) {
     var c = elt.context2D;
     if (_frame.frontAlpha != 1) {
       c.fillStyle = "#000";

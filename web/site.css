@@ -7,6 +7,11 @@ body {
   color: #333333;
   background-color: #F8F8F8;
   margin: 15px;
+      -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+       -o-user-select: none;
+          user-select: none;
 }
 
 tr {
@@ -29,6 +34,7 @@ a.logo {
 
 .strip-row button, .strip-column button {
   color: #bbbbbb;
+  outline: 0;
 }
 
 .strip-row button[disabled],
@@ -302,6 +308,13 @@ h1 {
           user-select: none;
 }
 
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+
 .btn:focus {
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
@@ -373,3 +386,21 @@ h1 {
   background-color: #ffffff;
   border-color: #cccccc;
 }
+
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.alert-success {
+  color: #468847;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+
+.alert > p {
+  margin-bottom: 0;
+}
+
